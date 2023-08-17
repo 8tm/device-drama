@@ -1,0 +1,59 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.4.0
+      hooks:
+          # Linters
+          - id: check-added-large-files
+          - id: check-merge-conflict
+          - id: check-shebang-scripts-are-executable
+          - id: check-yaml
+          - id: mixed-line-ending
+          - id: pretty-format-json
+            args: [--indent=4]
+          # Fixers
+          - id: requirements-txt-fixer
+          - id: trailing-whitespace
+          - id: double-quote-string-fixer
+          - id: end-of-file-fixer
+
+    # Additional fixers:
+
+    # Automatically formats Python code to conform to the PEP 8 style guide.
+    - repo: https://github.com/pre-commit/mirrors-autopep8
+      rev: v2.0.4
+      hooks:
+          - id: autopep8
+
+    # Flake8 is a wrapper around these tools: PyFlakes, pycodestyle and Ned Batchelder's McCabe script. The combination
+    # of these three linters makes sure that your code is compliant with PEP 8 and free of some obvious code smells.
+    - repo: https://github.com/pycqa/flake8
+      rev: 6.1.0
+      hooks:
+      - id: flake8
+        name: Flake8
+        types: ['python']
+
+    # isort is a Python library to sort imports alphabetically, and automatically separated into sections and by type.
+    - repo: https://github.com/PyCQA/isort
+      rev: 5.12.0
+      hooks:
+          - id: isort
+            args: [--filter-files]
+
+    # Markdownlint is a static analysis tool with a library of rules to enforce standards and consistency for Markdown
+    # files.
+    - repo: https://github.com/igorshubovych/markdownlint-cli
+      rev: v0.36.0
+      hooks:
+        - id: markdownlint
+          args: [--fix]
+
+    # MyPy is Static Typing for Python
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v1.5.1
+      hooks:
+      - id: MyPy
+        name: MyPy
+        args: [--config-file=mypy.ini]
+        exclude: ^setup.py|^tests/
+        types: ['python']
