@@ -1,3 +1,3 @@
-# Device-Drama
+# Device-Drama - Linux Fetch Tool
 
-Simple fetch tool for linux devices
+Simple fetch tool for Linux devices
