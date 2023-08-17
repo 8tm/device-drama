@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "device-drama"
+version = "23.8.17"
+description = "Device-Drama - Linux Fetch Tool"
+authors = ["Tadeusz Miszczyk <42252259+8tm@users.noreply.github.com>"]
+homepage = "http://github.com/8tm/device-drama"
+documentation = "https://test.pypi.org/project/device-drama"
+repository = "http://github.com/8tm/device-drama"
+readme = "README.md"
+
+
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: Unix",
+]
+
+
+[tool.poetry.dependencies]
+python = ">=3.8.1,<4.0"
+
+
+[tool.poetry.dev-dependencies]
+autopep8 = '^2.0.2'
+
+flake8 = "^6.0.0"
+flake8-colors = "^0.1.9"
+flake8-commas = "^2.1.0"
+flake8-import-order = "^0.18.2"
+flake8-quotes = "^3.3.0"
+
+mypy = "^1.0.1"
+
+pylint = "^2.5.0"
+
+pytest = "^7.2.0"
+pytest-cov = "^2.10.1"
+pytest-mock = "^3.10.0"
+pytest-xdist = "^1.29.0"
+pytest-parallel = "^0.1.1"
+
+
+[tool.poetry.scripts]
+device-drama = 'device_drama.main:main'
+
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"

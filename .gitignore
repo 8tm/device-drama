@@ -1,0 +1,16 @@
+.idea/
+.mypy_cache/
+.pytest_cache/
+.venv/
+build/
+htmlcov/
+__pycache__/
+dist/
+*.egg-info/
+*.*~
+.coverage
+*.pyc
+.python-version
+temporary/
+compileMsgCat.log
+__tests__/

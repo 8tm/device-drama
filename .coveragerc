@@ -1,0 +1,16 @@
+[run]
+omit = tests/integration/*
+
+[report]
+precision = 2
+# continue is excluded because "optimizer replaces a jump to a continue with a jump to the top of the loop, so the
+#   continue line is never actually executed, even though its effects are seen."
+# read more at https://bitbucket.org/ned/coveragepy/issues/198/continue-marked-as-not-covered
+exclude_lines =
+    pass
+    if __name__ == .__main__.:
+    def __repr__
+    raise NotImplementedError
+    continue
+    except ImportError
+    pragma: no cover
