@@ -10,7 +10,10 @@ from device_drama.utils import format_size
 
 
 class SystemInfo:
-    def __init__(self):
+    use_sudo: bool = False
+
+    def __init__(self, use_sudo: bool = False):
+        self.use_sudo = use_sudo
         self.os_info = self.get_os_info()
         self.cpu_info = self.get_cpu_info()
         self.gpu_info = self.get_gpu_info()
@@ -200,7 +203,7 @@ class SystemInfo:
         monitor_resolutions = ' + '.join([monitor.resolution for monitor in monitors])
         full_resolution = self.get_full_resolution()
         mobo = self.get_motherboard_info()
-        disks = Disks()
+        disks = Disks(self.use_sudo)
         line = '{model} {capacity} {tran} {rotations} {size} {used} {free} {used_percentage} {free_percentage} {mounted}'
         header = {
             'model': '{:20}'.format('Model'),

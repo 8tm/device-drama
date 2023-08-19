@@ -7,8 +7,11 @@ from device_drama.utils import format_size
 
 
 class DiskInfo:
-    def __init__(self, disk):
+    use_sudo: bool = False
+
+    def __init__(self, disk, use_sudo: bool = False):
         self.disk = disk
+        self.use_sudo = use_sudo
         self.lsblk_info = {}
         self.info = {
             "model": "",
@@ -19,7 +22,8 @@ class DiskInfo:
             "rotations": "----",
             "mounted": 'No',
         }
-        self.smart_info = SmartInfo(disk)
+        if self.use_sudo:
+            self.smart_info = SmartInfo(disk)
         self._fetch_disk_info()
 
     @staticmethod
@@ -88,7 +92,8 @@ class DiskInfo:
                 break
 
         self.info.update(self.lsblk_info)
-        self.info.update(self.smart_info.data)
+        if self.use_sudo:
+            self.info.update(self.smart_info.data)
 
     @staticmethod
     def list_all_disks():
