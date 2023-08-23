@@ -1,0 +1,24 @@
+from typing import Dict
+
+from device_drama.classes.base_plugin import BasePlugin
+
+
+class DDPlugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        self.info.author = 'Tadeusz Miszczyk'
+        self.info.description = 'Return CPU info'
+        self.info.id = 'H002'
+        self.info.name = 'CPU-Info'
+        self.info.released = '23.8.20'
+        self.info.version = '23.8.20'
+
+    def run(self) -> Dict[str, str]:
+        with open("/proc/cpuinfo", "r") as file:
+            for line in file:
+                if "model name" in line:
+                    return {
+                        "title": " CPU",
+                        "text": line.split(":")[1].strip()
+                    }
+        return {"title": " CPU", "text": ''}
