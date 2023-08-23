@@ -4,7 +4,7 @@ from device_drama.classes.base_plugin import BasePlugin
 
 
 class DDPlugin(BasePlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Disks info'

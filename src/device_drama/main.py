@@ -1,5 +1,6 @@
 import argparse
-import importlib.util
+# import importlib.util
+import importlib
 import subprocess
 import sys
 from pathlib import Path
@@ -61,7 +62,10 @@ def get_plugins(plugins_path: str, command_executor) -> Dict[str, Dict[str, DDPl
             module_rel_path = plugin_file.relative_to(plugins_directory)
             module_import_path = '.'.join(module_rel_path.with_suffix('').parts)
             try:
-                plugin_module = importlib.import_module(module_import_path)
+                if module_import_path in sys.modules:
+                    plugin_module = importlib.reload(sys.modules[module_import_path])
+                else:
+                    plugin_module = importlib.import_module(module_import_path)
             except ImportError as e:
                 print(f"Error importing module '{module_import_path}': {str(e)}. Skipping...")
                 continue

@@ -11,11 +11,15 @@ class PluginInfo:
 
 
 class BasePlugin:
-    info: PluginInfo = PluginInfo()
-    command_executor = None
+    info: PluginInfo
     args: Dict[str, Union[str, List[str], Dict[str, int]]]
 
-    def set_command_executor(self, command_executor):
+    def __init__(self) -> None:
+        self.info = PluginInfo()
+        self.command_executor = None
+        self.args = {}
+
+    def set_command_executor(self, command_executor) -> None:
         self.command_executor = command_executor
 
     def run(self) -> Dict[str, str]:
