@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
 
@@ -13,12 +13,22 @@ class DDPlugin(BasePlugin):
         self.info.released = '23.8.20'
         self.info.version = '23.8.20'
 
-    def run(self) -> Dict[str, str]:
+    def run(self) -> List[Dict[str, str]]:
         with open("/etc/os-release", "r") as file:
             for line in file:
                 if line.startswith("PRETTY_NAME"):
-                    return {
-                        "title": "OS-name",
-                        "text": line.split("=")[1].strip().strip('"')
-                    }
-        return {"title": "OS-name", "text": ''}
+                    return [
+                        {
+                            "title": "OS-name: ",
+                            "text": line.split("=")[1].strip().strip('"'),
+                        },
+                        {
+                            "title": "OS-name: ",
+                            "text": line.split("=")[1].strip().strip('"'),
+                        },
+                        {
+                            "title": "OS-name: ",
+                            "text": line.split("=")[1].strip().strip('"'),
+                        }
+                    ]
+        return [{"title": "OS-name: ", "text": ''}]

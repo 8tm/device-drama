@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
 
@@ -13,12 +13,14 @@ class DDPlugin(BasePlugin):
         self.info.released = '23.8.20'
         self.info.version = '23.8.20'
 
-    def run(self) -> Dict[str, str]:
+    def run(self) -> List[Dict[str, str]]:
         with open("/proc/cpuinfo", "r") as file:
             for line in file:
                 if "model name" in line:
-                    return {
-                        "title": " CPU",
-                        "text": line.split(":")[1].strip()
-                    }
-        return {"title": " CPU", "text": ''}
+                    return [
+                        {
+                            "title": " CPU: ",
+                            "text": line.split(":")[1].strip(),
+                        }
+                    ]
+        return [{"title": " CPU: ", "text": ''}]
