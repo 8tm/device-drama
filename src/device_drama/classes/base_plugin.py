@@ -22,8 +22,12 @@ class BasePlugin:
     def set_command_executor(self, command_executor) -> None:
         self.command_executor = command_executor
 
-    def run(self) -> Dict[str, str]:
-        return {
-            "title": "DDPlugin",
-            "text": "BASE DDPlugin"
-        }
+    def run(self) -> List[Dict[str, str]]:
+        return [
+            {
+                "type": "row",
+                "title": "DDPlugin",
+                "text": "BASE DDPlugin",
+            }
+        ]
+

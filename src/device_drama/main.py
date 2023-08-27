@@ -1,5 +1,7 @@
 import argparse
 import importlib
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -126,19 +128,29 @@ def present_plugin_output(dd_plugin: DDPlugin) -> None:
 def parser() -> argparse.ArgumentParser:
     argument_parser = argparse.ArgumentParser(description='Device-Drama')
 
+    # argument_parser.add_argument(
+    #     '-s', '--sudo', action='store_true', required=False, default=False,
+    #     dest='args_use_sudo', help='Print information which required root permissions',
+    # )
+
+    argument_parser.add_argument(
+        '-b', '--background', action='store_true', required=False, default=False,
+        dest='background', help='Add background layout',
+    )
+
     argument_parser.add_argument(
         '-c', '--color', action='store_true', required=False, default=False,
-        dest='args_use_color', help='Use additional colors',
+        dest='color', help='Use colored output',
     )
 
     argument_parser.add_argument(
-        '-s', '--sudo', action='store_true', required=False, default=False,
-        dest='args_use_sudo', help='Print information which required root permissions',
+        '-s', '--seed', type=int, default=None,
+        dest='seed', help='Set seed integer value for color parameter',
     )
 
     argument_parser.add_argument(
-        '--plugins_dir', type=str, default=str(Path(__file__).parent / 'plugins'),
-        dest='args_plugins_dir', help='Set transcription file names',
+        '-p', '--plugins_dir', type=str, default=str(Path(__file__).parent / 'plugins'),
+        dest='plugins_dir', help='Set transcription file names',
     )
 
     return argument_parser
@@ -164,24 +176,35 @@ def get_formated_text(
     return f"\033[{_bold};{color};{background}m{text}\033[m"
 
 
+def remove_color_codes(text: str) -> str:
+    return re.sub(r'\033\[\d+(;\d+)*m', '', text)
+
+
+def remove_formatting(text: str) -> str:
+    return re.sub(r'\033\[\d*(;\d+)*m', '', text).strip()
+
+
 def generate_screen(plugin_modules, colors) -> List[str]:
-    color = colors[4]['color'] if Config.arguments.args_use_sudo else colors[3]['color']
+    color = colors[4]['color'] if os.geteuid() == 0 else colors[3]['color']
     screen = []
 
     screen.append(
+        get_formated_text(text=' ', background=colors[3]['background'], color=color, full_width=False) +
         get_formated_text(
-            text='Device-Drama v23.8.24',
+            text='Device-Drama v23.8.24        (https://github.com/8tm/device-drama)',
             bold=True,
-            center=True,
+            center=False,
+            short_length=2,
             background=colors[3]['background'],
             color=color,
-        )
+        ) +
+        get_formated_text(text=' ', background=colors[3]['background'], color=color, full_width=False)
     )
     screen.append(
         get_formated_text(
             text=' ',
             bold=True,
-            center=True,
+            center=False,
             background=colors[3]['background'],
             color=color,
         )
@@ -189,10 +212,10 @@ def generate_screen(plugin_modules, colors) -> List[str]:
 
     plugin_number = 1
     for folder_name, plugins_in_folder in plugin_modules.items():
-        header = ' '.join(folder_name.split('_')[1:]).title()
+        header = '        ' + ' '.join(folder_name.split('_')[1:]).title()
         screen.append(
             get_formated_text(text=' ', background=colors[3]['background'], color=color, full_width=False) +
-            get_formated_text(text=header, bold=True, center=True, short_length=2) +
+            get_formated_text(text=header, bold=True, center=False, short_length=2) +
             get_formated_text(text=' ', background=colors[3]['background'], color=color, full_width=False)
         )
 
@@ -200,8 +223,9 @@ def generate_screen(plugin_modules, colors) -> List[str]:
         for valid_dataset_plugin, dd_plugin in plugins_in_folder.items():
             plugin_number += 1
             dd_plugin.args = {
-                'use_sudo': str(Config.arguments.args_use_sudo),
-                'plugins_dir': str(Config.arguments.args_plugins_dir),
+                'plugins_dir': str(Config.arguments.plugins_dir),
+                'color': str(Config.arguments.color),
+                'background': str(Config.arguments.background),
             }
 
             output: List[Dict[str, str]] = dd_plugin.run()
@@ -209,8 +233,7 @@ def generate_screen(plugin_modules, colors) -> List[str]:
             for line in output:
                 if len(output) > 1:
                     plugin_number += 1
-                # print(f'{line["title"]}{line["text"]} [{dd_plugin.info.name}]')
-                line = f' {line["title"]}{line["text"]} [{dd_plugin.info.name}]'
+                line = f' {line["title"]}{line["text"]}'  #  [{dd_plugin.info.name}]'
                 screen.append(
                     get_formated_text(
                         text=' ', background=colors[3]['background'], color=color, full_width=False,
@@ -226,34 +249,17 @@ def generate_screen(plugin_modules, colors) -> List[str]:
                     )
                 )
 
-                # get_formated_text(text=f' MoBo: {mobo["company"]} {mobo["name"]}', background=53, color=40))
-                # get_formated_text(text=f'  CPU: {self.cpu_info["info"]}', background=53, color=100))
-        # print(
-        #     get_formated_text(
-        #         text='',
-        #         background=colors[2]['background'],
-        #         color=colors[2]['color']
-        #     )
-        # )
         screen.append(
             get_formated_text(
                 text='', bold=True, center=True, background=colors[3]['background'], color=color,
             )
         )
-    # print(get_formated_text(text='', bold=True, center=True, background=241, color=44))
     return screen
-"""
-device-drama        | lolcat -p 100 -F 0.73 -t -f -S 53
-device-drama --sudo | lolcat -p 100 -F 0.73 -t -f -S 53
-
-device-drama        | lolcat -p 19.0 -F 1.5 -S 70 -t -f
-
-"""
 
 
 def main():
     Config.arguments = parser().parse_args()
-    path_to_plugins = Config.arguments.args_plugins_dir
+    path_to_plugins = Config.arguments.plugins_dir
     command_executor = CommandExecutor()
     plugin_modules = get_plugins(path_to_plugins, command_executor)
     colors = [
@@ -265,15 +271,35 @@ def main():
     ]
 
     screen = '\n'.join(generate_screen(plugin_modules, colors))
+    # lolcat_command = ['/usr/games/lolcat', '-p', '19.0', '-F', '1.5', '-S', '70', '-t', '-f']
+    lolcat_command = ['/usr/games/lolcat', '-p', '19.0', '-F', '1.5', '-t', '-f']
+    if Config.arguments.seed:
+        lolcat_command = ['/usr/games/lolcat', '-p', '19.0', '-F', '1.5', '-t', '-f', '-S', str(Config.arguments.seed)]
 
-    if Config.arguments.args_use_color:
-        process = subprocess.Popen(['lolcat', '-p', '19.0', '-F', '1.5', '-S', '70', '-t', '-f'], stdin=subprocess.PIPE)
+    if not Config.arguments.color and not Config.arguments.background:
+        print(remove_formatting(screen))
+        print()
+    elif not Config.arguments.color and Config.arguments.background:
+        print(screen)
+    elif Config.arguments.color and not Config.arguments.background:
+        process = subprocess.Popen(lolcat_command, stdin=subprocess.PIPE)
+        process.communicate(input=remove_formatting(screen).encode())
+        print('\n')
+    elif Config.arguments.color and Config.arguments.background:
+        process = subprocess.Popen(lolcat_command, stdin=subprocess.PIPE)
         process.communicate(input=screen.encode())
     else:
-        print(screen)
+        print('wtf...')
 
-    # print(screen)
 
+"""
+
+sudo apt install edid-decode lolcat
+
+"""
 
 if __name__ == "__main__":
     main()
+
+
+

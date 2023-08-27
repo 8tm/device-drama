@@ -30,10 +30,11 @@ class DDPlugin(BasePlugin):
 
         gpu_info = gpu_name
         if gpu_total_memory // 1000 > 0:
-            gpu_info += f' (Used {(gpu_total_memory - gpu_available_memory) // 1000}GB of {gpu_total_memory // 1000}GB)'
+            gpu_info += f' (Used {(gpu_total_memory - gpu_available_memory) // 1000} GB of {gpu_total_memory // 1000} GB)'
 
         return [
             {
+                "type": "row",
                 "title": " GPU: ",
                 "text": gpu_info,
             }

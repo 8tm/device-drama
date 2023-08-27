@@ -19,8 +19,9 @@ class DDPlugin(BasePlugin):
                 if "model name" in line:
                     return [
                         {
+                            "type": "row",
                             "title": " CPU: ",
                             "text": line.split(":")[1].strip(),
                         }
                     ]
-        return [{"title": " CPU: ", "text": ''}]
+        return [{"type": "row", "title": " CPU: ", "text": ''}]

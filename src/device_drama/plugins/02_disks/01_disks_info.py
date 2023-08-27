@@ -1,6 +1,164 @@
+import json
+import os
+import re
+import subprocess
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.utils import format_size, simplify_size_string
+
+
+class SmartInfo:
+    def __init__(self, disk_name):
+        self.disk = disk_name
+        self.data = self._fetch_smart_info()
+
+    def _fetch_smart_info(self):
+        cmd = f"sudo smartctl --info /dev/{self.disk}"
+        try:
+            output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        except subprocess.CalledProcessError:
+            return {}
+
+        info = {}
+        known_smart_params = {
+            'capacity': ['User Capacity:', 'Total NVM Capacity:', 'Namespace 1 Size/Capacity:'],
+            'model': ['Device Model:', 'Model Number:'],
+            'rotations': ['Rotation Rate:'],
+        }
+
+        for line in output.split('\n'):
+            param_name = line.split(':')[0] + ':'
+            param_value = line.replace(param_name, '').strip()
+            for param, options in known_smart_params.items():
+                if param_name in options:
+                    if param == 'capacity':
+                        param_value = simplify_size_string(
+                            re.search(r'\[(.*?)\]', param_value).group(1).replace(',', '.')
+                        )
+                    if param == 'model':
+                        param_value = param_value.split('-')[0]
+                    if param == 'rotations':
+                        param_value = param_value.replace(' rpm', '').split(' ')[0].upper().strip()
+                    info[param] = param_value
+        return info
+
+
+class DiskInfo:
+    # use_sudo: bool = False
+
+    def __init__(self, disk):  # , use_sudo: bool = False):
+        self.disk = disk
+        # self.use_sudo = use_sudo
+        self.lsblk_info = {}
+        self.info = {
+            "model": "",
+            "name": "",
+            "tran": "",
+            "rota": False,
+            "capacity": "------",
+            "rotations": "----",
+            "mounted": 'No',
+        }
+        # if self.use_sudo:
+        if os.geteuid() == 0:
+            self.smart_info = SmartInfo(disk)
+        self._fetch_disk_info()
+
+    @staticmethod
+    def _is_mounted(device):
+        with open('/proc/mounts', 'r') as mounts_file:
+            mounts = mounts_file.readlines()
+        for mount in mounts:
+            if device in mount.split()[0]:
+                return 'YES'
+        return 'NO'
+
+    def _get_disk_total_size(self, disk_name):
+        size_path = f"/sys/block/{disk_name}/size"
+        sector_size_path = f"/sys/block/{disk_name}/queue/hw_sector_size"
+
+        with open(size_path, 'r') as f:
+            num_sectors = int(f.read().strip())
+
+        with open(sector_size_path, 'r') as f:
+            sector_size = int(f.read().strip())
+
+        return num_sectors * sector_size
+
+    def _get_disk_usage(self, disk_name):
+        total_space = self._get_disk_total_size(disk_name)
+
+        with open("/proc/mounts", "r") as f:
+            mounts = sorted([line.split()[1] for line in f if line.startswith(f"/dev/{disk_name}")])
+
+        primary_mount = mounts[0] if mounts else None
+
+        if primary_mount:
+            stat = os.statvfs(primary_mount)
+            free_space = stat.f_frsize * stat.f_bfree
+            used_space = total_space - free_space
+        else:
+            # If the disk is unmounted, we can't get the exact used and free space
+            used_space = total_space
+            free_space = 0
+
+        used_percentage = (used_space / total_space) * 100 if total_space != 0 else 0
+        free_percentage = 100 - used_percentage
+
+        return {
+            "size": format_size(total_space),
+            "used": format_size(used_space),
+            "free": format_size(free_space),
+            "used_percentage": f"{used_percentage:.0f}%",
+            "free_percentage": f"{free_percentage:.0f}%"
+        }
+
+    def _fetch_disk_info(self):
+        cmd = f"lsblk -o MODEL,NAME,TRAN,ROTA -J"
+        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        data = json.loads(output)
+
+        for device in data["blockdevices"]:
+            if device["name"] == self.disk:
+                self.lsblk_info = device
+                self.lsblk_info['mounted'] = self._is_mounted(device["name"])
+
+                for param, value in self._get_disk_usage(device["name"]).items():
+                    self.lsblk_info[param] = value
+
+                # del self.lsblk_info['children']
+                break
+
+        self.info.update(self.lsblk_info)
+        # if self.use_sudo:
+        if os.geteuid() == 0:
+            self.info.update(self.smart_info.data)
+
+    @staticmethod
+    def list_all_disks():
+        cmd = "lsblk -o NAME,TYPE -n -l | grep -E '^(sd|nvme).*disk' | awk '{print $1}'"
+        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        return [disk.strip() for disk in output.splitlines()]
+
+    def __str__(self):
+        return json.dumps(self.info, indent=4)
+
+
+class Disks:
+    # use_sudo: bool = False
+
+    def __init__(self):  # , use_sudo):
+        # self.use_sudo = use_sudo
+        self.disks = self._fetch_all_disks_info()
+
+    def _fetch_all_disks_info(self):
+        disk_names = DiskInfo.list_all_disks()
+        # return [DiskInfo(disk_name, self.use_sudo) for disk_name in disk_names]
+        return [DiskInfo(disk_name) for disk_name in disk_names]
+
+    def __str__(self):
+        return "\n".join([str(disk_info) for disk_info in self.disks])
 
 
 class DDPlugin(BasePlugin):
@@ -14,26 +172,50 @@ class DDPlugin(BasePlugin):
         self.info.version = '23.8.20'
 
     def run(self) -> List[Dict[str, str]]:
-        with open('/sys/devices/virtual/dmi/id/sys_vendor', 'r') as mobo_company_file:
-            company = mobo_company_file.read().strip()
+        disks_info = []
+        # disks = Disks(False)
+        disks = Disks()
+        line = '{model} {capacity} {tran} {rotations} {size} {used} {free} {used_percentage} {free_percentage} {mounted}'
+        header = {
+            'model': '{:20}'.format('Model'),
+            'capacity': '{:>6}'.format('Size'),
+            'tran': '{:>4}'.format('Tran'),
+            'rotations': '{:^5}'.format('RPM'),
+            'size': '{:>9}'.format('Real Size'),
+            'used': '{:>9}'.format('Real Used'),
+            'free': '{:>9}'.format('Real Free'),
+            'used_percentage': '{:>5}'.format('Used%'),
+            'free_percentage': '{:>5}'.format('Free%'),
+            'mounted': '{:>5}'.format('Mount'),
+        }
 
-        with open('/sys/devices/virtual/dmi/id/board_name', 'r') as mobo_name_file:
-            model = mobo_name_file.read().strip()
-
-        return [
+        disks_info.append(
             {
-                "title": "Disks: ",
-                "text": f"{company} {model}",
-            },
-            {
-                "title": "Disks: ",
-                "text": f"{company} {model}",
-            },            {
-                "title": "Disks: ",
-                "text": f"{company} {model}",
-            },
-            {
-                "title": "Disks: ",
-                "text": f"{company} {model}",
+                'type': 'header',
+                'title': 'ID ',
+                'text': line.format(**header),
             }
-        ]
+        )
+
+        for index, disk in enumerate(disks.disks, start=1):
+            params = {
+                'model': '{:20}'.format(disk.info['model']),
+                'capacity': '{:>6}'.format(disk.info['capacity']),
+                'tran': '{:>4}'.format(disk.info['tran'].upper()),
+                'rotations': '{:>5}'.format(disk.info['rotations']),
+                'size': '{:>9}'.format(disk.info['size']),
+                'used': '{:>9}'.format(disk.info['used']),
+                'free': '{:>9}'.format(disk.info['free']),
+                'used_percentage': '{:>5}'.format(disk.info['used_percentage']),
+                'free_percentage': '{:>5}'.format(disk.info['free_percentage']),
+                'mounted': '{:>5}'.format(disk.info['mounted']),
+            }
+            disks_info.append(
+                {
+                    'type': 'row',
+                    'title': f'{index:^3}',
+                    'text': line.format(**params),
+                }
+            )
+
+        return disks_info
