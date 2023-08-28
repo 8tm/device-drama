@@ -144,6 +144,11 @@ def parser() -> argparse.ArgumentParser:
     )
 
     argument_parser.add_argument(
+        '-e', '--plugins-export-dir', required=False, default=None, type=str,
+        dest='plugins_export_dir', help='Export plugins to path',
+    )
+
+    argument_parser.add_argument(
         '-s', '--seed', type=int, default=None,
         dest='seed', help='Set seed integer value for color parameter',
     )
@@ -257,8 +262,47 @@ def generate_screen(plugin_modules, colors) -> List[str]:
     return screen
 
 
+def export_plugins(source, destination):
+    try:
+        copy_files(source, destination)
+    except PermissionError:
+        print("Błąd uprawnień. Upewnij się, że masz odpowiednie uprawnienia do kopiowania.")
+    except FileExistsError:
+        print(f"Folder docelowy {destination} już istnieje.")
+    except Exception as e:
+        print(f"Wystąpił błąd: {e}")
+
+    if not os.path.exists(source):
+        print(f"Ścieżka źródłowa {source} nie istnieje.")
+        return
+
+
+def copy_files(source, destination):
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    for item in os.listdir(source):
+        source_path = os.path.join(source, item)
+        destination_path = os.path.join(destination, item)
+
+        if os.path.isdir(source_path):
+            if '__pycache__' not in item:
+                copy_files(source_path, destination_path)
+        else:
+            shutil.copy2(source_path, destination_path)
+
+
 def main():
     Config.arguments = parser().parse_args()
+
+    if Config.arguments.plugins_export_dir:
+        if Path(Config.arguments.plugins_export_dir).exists() and Path(Config.arguments.plugins_export_dir).is_dir():
+            export_plugins(
+                Path(__file__).parent / 'plugins',
+                Path(Config.arguments.plugins_export_dir) / 'device-drama_plugins',
+            )
+            sys.exit(0)
+
     path_to_plugins = Config.arguments.plugins_dir
     command_executor = CommandExecutor()
     plugin_modules = get_plugins(path_to_plugins, command_executor)
@@ -290,7 +334,6 @@ def main():
         process.communicate(input=screen.encode())
     else:
         print('wtf...')
-
 
 """
 
