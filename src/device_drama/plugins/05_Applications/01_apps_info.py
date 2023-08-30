@@ -9,11 +9,10 @@ class DDPlugin(BasePlugin):
     def __init__(self) -> None:
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
-        self.info.description = 'Return OS Name'
-        self.info.id = 'S001'
-        self.info.name = 'OS-Name'
-        self.info.released = '23.8.20'
+        self.info.description = 'Return Apps info'
+        self.info.name = 'Apps-info'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def get_shell_info(self):
         shell_path = os.environ.get('SHELL', 'Unknown Shell')

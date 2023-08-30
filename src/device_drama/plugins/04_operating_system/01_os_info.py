@@ -9,11 +9,10 @@ class DDPlugin(BasePlugin):
     def __init__(self) -> None:
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
-        self.info.description = 'Return OS Name'
-        self.info.id = 'S001'
-        self.info.name = 'OS-Name'
-        self.info.released = '23.8.20'
+        self.info.description = 'Return OS Info'
+        self.info.name = 'OS-Info'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def get_packages_count(self):
         if platform.system() == "Linux":

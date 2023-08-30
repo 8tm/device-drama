@@ -8,10 +8,9 @@ class DDPlugin(BasePlugin):
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return GPU info'
-        self.info.id = 'H003'
         self.info.name = 'GPU-Info'
-        self.info.released = '23.8.20'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
         gpu_info = self.command_executor.run_command('glxinfo').output

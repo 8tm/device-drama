@@ -37,13 +37,14 @@ class Config:
 
 
 class DDPlugin(BasePlugin):
-    def run(self) -> List[Dict[str, str]]:
-        return [
-            {
-                "title": "DDPlugin",
-                "text": "BASE DDPlugin",
-            }
-        ]
+    pass
+    # def run(self) -> List[Dict[str, str]]:
+    #     return [
+    #         {
+    #             "title": "DDPlugin",
+    #             "text": "BASE DDPlugin",
+    #         }
+    #     ]
 
 
 def get_plugins(plugins_path: str, command_executor) -> Dict[str, Dict[str, DDPlugin]]:
@@ -78,6 +79,18 @@ def get_plugins(plugins_path: str, command_executor) -> Dict[str, Dict[str, DDPl
             try:
                 plugin_class = getattr(plugin_module, plugin_class_name)
                 plugin_instance = plugin_class()
+                is_compatible = plugin_instance.is_compatible(
+                    plugin_instance.info.compatible_version, '23.1.1', '23.12.31',
+                )
+                if is_compatible == "=":
+                    print(f'Plugin "{plugin_instance.info.name}" is compatible!')
+                elif is_compatible == "+":
+                    print(f"Plugin {plugin_instance.info.name} is NOT compatible! It's for newer version of library!")
+                elif is_compatible == "-":
+                    print(f"Plugin {plugin_instance.info.name} is NOT compatible! It's for older version of library!")
+                else:
+                    print(f"Plugin {plugin_instance.info.name} is Unknown!")
+
                 plugin_instance.set_command_executor(command_executor)
                 plugins[plugin_name] = plugin_instance
             except AttributeError:
@@ -293,6 +306,16 @@ def copy_files(source, destination):
 
 
 def main():
+    """
+    jeżeli plugin miał podaną wersję mieszcącą sie w tycm przedziale to wczytaj plugin.
+    Jeżeli nie to nie wczytuj pluginu (wywal go z listy?)
+    
+    Dodać wyświetlanie listy pluginów w formie tabeli (na podstawie podanej ściezki do pluginów)
+
+    Dodać informacje jak nie ma wymaganych atrybutów (minimum jakie oczekuje od pluginu aby posiadał)
+    
+    """
+
     Config.arguments = parser().parse_args()
 
     if Config.arguments.plugins_export_dir:

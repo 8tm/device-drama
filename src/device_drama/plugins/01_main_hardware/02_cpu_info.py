@@ -8,10 +8,9 @@ class DDPlugin(BasePlugin):
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return CPU info'
-        self.info.id = 'H002'
         self.info.name = 'CPU-Info'
-        self.info.released = '23.8.20'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
         with open("/proc/cpuinfo", "r") as file:

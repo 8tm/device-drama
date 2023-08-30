@@ -47,10 +47,9 @@ class DDPlugin(BasePlugin):
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Monitors info'
-        self.info.id = 'H001'
         self.info.name = 'Monitors-Info'
-        self.info.released = '23.8.20'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def get_monitors_info(self):
         if platform.system() == "Linux":

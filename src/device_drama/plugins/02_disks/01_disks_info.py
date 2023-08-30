@@ -166,10 +166,9 @@ class DDPlugin(BasePlugin):
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Disks info'
-        self.info.id = 'D001'
         self.info.name = 'Disks-Info'
-        self.info.released = '23.8.20'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
         disks_info = []

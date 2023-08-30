@@ -8,10 +8,9 @@ class DDPlugin(BasePlugin):
         super().__init__()
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return MoBo info'
-        self.info.id = 'H001'
         self.info.name = 'MoBo-Info'
-        self.info.released = '23.8.20'
         self.info.version = '23.8.20'
+        self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
         with open('/sys/devices/virtual/dmi/id/sys_vendor', 'r') as mobo_company_file:
