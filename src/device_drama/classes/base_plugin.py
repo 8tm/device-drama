@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 from enum import Enum
 
+from device_drama.classes.logger import Logger
 from device_drama.misc import calendar_version_to_date
 
 
@@ -27,6 +28,7 @@ class CompatibilityException(Exception):
 class BasePlugin:
     info: PluginInfo
     args: Dict[str, Union[str, List[str], Dict[str, int]]]
+    logger: Logger = Logger(__name__)
 
     def __init__(self) -> None:
         self.info = PluginInfo()

@@ -9,11 +9,16 @@ from typing import Dict, List, Tuple
 
 from device_drama.classes.base_plugin import BasePlugin, PluginStatus, CompatibilityException
 from device_drama.classes.config import Config
+from device_drama.classes.logger import Logger
 from device_drama.misc import copy_files, get_formatted_text, remove_formatting
+
+
+logger = Logger(__name__)
 
 
 def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
     exclude_folders: Tuple[str, ...] = ('__pycache__',)
+    logger.info(f'Adding plugins path "{plugins_path}" to system PATH')
     sys.path.append(plugins_path)
     plugins_directory = Path(plugins_path)
     all_plugins = {}
@@ -32,11 +37,15 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
             module_import_path = '.'.join(module_rel_path.with_suffix('').parts)
             try:
                 if module_import_path in sys.modules:
+                    logger.warning(f'Reloading plugin "{module_import_path}"')
                     plugin_module = importlib.reload(sys.modules[module_import_path])
                 else:
+                    logger.info(f'Importing plugin "{module_import_path}"')
                     plugin_module = importlib.import_module(module_import_path)
             except ImportError as e:
-                print(f"Error importing module '{module_import_path}': {str(e)}. Skipping...")
+                msg = f'Error importing module "{module_import_path}": {str(e)}. Skipping...'
+                logger.error(msg)
+                print(msg)
                 continue
 
             plugin_class_name = 'DDPlugin'
@@ -55,16 +64,27 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
                         plugins[plugin_name] = plugin_instance
                 except CompatibilityException as e:
                     if e.status == PluginStatus.NEWER:
-                        print(
-                            f"Plugin {plugin_instance.info.name} NIE jest kompatybilny! Jest dla nowszej wersji biblioteki!")
+                        msg = (
+                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                            f'application! It was made for a newer version!'
+                        )
+                        logger.warning(msg)
                     elif e.status == PluginStatus.OLDER:
-                        print(
-                            f"Plugin {plugin_instance.info.name} NIE jest kompatybilny! Jest dla starszej wersji biblioteki!")
+                        msg = (
+                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                            f'application! It was made for an older version!'
+                        )
+                        logger.warning(msg)
                     else:
-                        print(f"Plugin {plugin_instance.info.name} - stan kompatybilności nieznany!")
+                        msg = (
+                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                            f'application! It is not possible to determine what version of the application it was '
+                            f'created for.'
+                        )
+                        logger.warning(msg)
 
             except AttributeError:
-                print(f"Plugin class '{plugin_class_name}' not found in module '{plugin_name}'. Skipping...")
+                logger.warning(f'Plugin class "{plugin_class_name}" not found in module "{plugin_name}". Skipping...')
 
         all_plugins[subdir_path.name] = plugins
 
@@ -177,18 +197,28 @@ def generate_screen(plugin_modules) -> List[str]:
 
 
 def export_plugins(source, destination):
-    try:
-        copy_files(source, destination, exclude_folders=['__pycache__'])
-    except PermissionError:
-        print("Błąd uprawnień. Upewnij się, że masz odpowiednie uprawnienia do kopiowania.")
-    except FileExistsError:
-        print(f"Folder docelowy {destination} już istnieje.")
-    except Exception as e:
-        print(f"Wystąpił błąd: {e}")
-
     if not os.path.exists(source):
-        print(f"Ścieżka źródłowa {source} nie istnieje.")
+        msg = f'Source path {source} does not exist.'
+        print(msg)
+        logger.error(msg)
         return
+
+    try:
+        logger.info(f'Copying plugins from "{source}" to "{destination}"')
+        copy_files(source, destination, exclude_folders=['__pycache__'])
+        logger.info(f'Copying plugins finished')
+    except PermissionError:
+        msg = 'Permission error. Make sure you have the correct permissions to copy.'
+        print(msg)
+        logger.error(msg)
+    except FileExistsError:
+        msg = f'The destination folder {destination} already exists.'
+        print(msg)
+        logger.error(msg)
+    except Exception as e:
+        msg = f'An error occurred: {e}'
+        print(msg)
+        logger.error(msg)
 
 
 def main():
@@ -201,18 +231,25 @@ def main():
     Dodać informacje jak nie ma wymaganych atrybutów (minimum jakie oczekuje od pluginu aby posiadał)
     
     """
+
+    logger.info('---------- STARTED  ----------')
     Config.arguments = parser().parse_args()
 
     if Config.arguments.plugins_export_dir:
+        logger.info(f'User requested to export plugins to "{Config.arguments.plugins_export_dir}"')
         if not Path(Config.arguments.plugins_export_dir).exists():
+            logger.info(f'Creating not existing folder to export plugins')
             Path(Config.arguments.plugins_export_dir).mkdir(parents=True)
 
+        logger.info(f'Exporting plugins')
         export_plugins(
             Path(__file__).parent / 'plugins',
             Path(Config.arguments.plugins_export_dir) / 'device-drama_plugins',
         )
+        logger.info(f'Application finished after plugin export')
         sys.exit(0)
 
+    logger.info(f'Searching for plugins in "{Config.arguments.plugins_dir}"')
     plugin_modules = get_plugins(Config.arguments.plugins_dir)
 
     lolcat_command = ['/usr/games/lolcat', '-p', '19.0', '-F', '1.5', '-t', '-f']
@@ -234,7 +271,8 @@ def main():
         process = subprocess.Popen(lolcat_command, stdin=subprocess.PIPE)
         process.communicate(input=screen.encode())
     else:
-        print('wtf...')
+        logger.error('Unknown color/background setting selected...')
+    logger.info('---------- FINISHED ----------')
 
 """
 sudo apt install edid-decode lolcat
@@ -244,6 +282,3 @@ https://docs.python.org/3/library/logging.html
 
 if __name__ == "__main__":
     main()
-
-
-

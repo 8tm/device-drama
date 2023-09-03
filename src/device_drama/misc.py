@@ -54,7 +54,6 @@ def copy_files(source, destination, exclude_folders: List[str]):
         if os.path.isdir(source_path):
             for folder_name in exclude_folders:
                 if folder_name not in item:
-                # if '__pycache__' not in item:
                     copy_files(source_path, destination_path, exclude_folders)
         else:
             shutil.copy2(source_path, destination_path)

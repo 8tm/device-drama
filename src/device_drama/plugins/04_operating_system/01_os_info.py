@@ -3,17 +3,19 @@ import platform
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.classes.logger import Logger
 from device_drama.misc import run_command
 
 
 class DDPlugin(BasePlugin):
     def __init__(self) -> None:
         super().__init__()
+        self.logger = Logger(__name__)
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return OS Info'
         self.info.name = 'OS-Info'
-        self.info.plugin_version = '23.8.20'
-        self.info.compatible_version = '23.8.30'
+        self.info.plugin_version = '23.9.4'
+        self.info.compatible_version = '23.9.4'
 
     @staticmethod
     def get_packages_count():

@@ -1,16 +1,18 @@
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.classes.logger import Logger
 
 
 class DDPlugin(BasePlugin):
     def __init__(self) -> None:
         super().__init__()
+        self.logger = Logger(__name__)
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return CPU info'
         self.info.name = 'CPU-Info'
-        self.info.plugin_version = '23.8.20'
-        self.info.compatible_version = '23.8.30'
+        self.info.plugin_version = '23.9.4'
+        self.info.compatible_version = '23.9.4'
 
     def run(self) -> List[Dict[str, str]]:
         with open('/proc/cpuinfo', 'r') as file:

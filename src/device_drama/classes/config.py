@@ -12,5 +12,5 @@ class Config:
         {'background': 250, 'color': 44},
         {'background': 250, 'color': 41},
     ]
-    compatible_from_version = '23.1.1'
+    compatible_from_version = '23.9.4'
     metadata = importlib.metadata.metadata(str(__package__).replace('.classes', ''))

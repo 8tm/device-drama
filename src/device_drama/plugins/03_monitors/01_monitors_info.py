@@ -2,6 +2,7 @@ import platform
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.classes.logger import Logger
 from device_drama.misc import run_command
 
 
@@ -49,11 +50,12 @@ class Monitor:
 class DDPlugin(BasePlugin):
     def __init__(self) -> None:
         super().__init__()
+        self.logger = Logger(__name__)
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Monitors info'
         self.info.name = 'Monitors-Info'
-        self.info.plugin_version = '23.8.20'
-        self.info.compatible_version = '23.8.30'
+        self.info.plugin_version = '23.9.4'
+        self.info.compatible_version = '23.9.4'
 
     @staticmethod
     def get_monitors_info():
