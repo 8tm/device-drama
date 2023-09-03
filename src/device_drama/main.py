@@ -83,7 +83,7 @@ def parser() -> argparse.ArgumentParser:
     )
 
     argument_parser.add_argument(
-        '-e', '--plugins-export-dir', required=False, default=None, type=str,
+        '-e', '--export', required=False, default=None, type=str,
         dest='plugins_export_dir', help='Export plugins to path',
     )
 
@@ -93,7 +93,7 @@ def parser() -> argparse.ArgumentParser:
     )
 
     argument_parser.add_argument(
-        '-p', '--plugins_dir', type=str, default=str(Path(__file__).parent / 'plugins'),
+        '-d', '--dir', type=str, default=str(Path(__file__).parent / 'plugins'),
         dest='plugins_dir', help='Set transcription file names',
     )
 
