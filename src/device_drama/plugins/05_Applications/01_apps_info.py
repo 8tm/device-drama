@@ -3,6 +3,7 @@ import platform
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.misc import run_command
 
 
 class DDPlugin(BasePlugin):
@@ -11,12 +12,12 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Apps info'
         self.info.name = 'Apps-info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def get_shell_info(self):
         shell_path = os.environ.get('SHELL', 'Unknown Shell')
-        shell_version_output = self.command_executor.run_command(f'{shell_path} --version').output
+        shell_version_output = run_command(f'{shell_path} --version').output
         shell_version = "Unknown Version"
         if shell_version_output.split():
             shell_version = shell_version_output.split()[3].split('(')[0]
@@ -25,15 +26,15 @@ class DDPlugin(BasePlugin):
     def get_window_manager(self):
         wm = "Unknown WM"
         if platform.system() == "Linux":
-            wm = self.command_executor.run_command('xprop -root _NET_WM_NAME').output.split("=")[1]
+            wm = run_command('xprop -root _NET_WM_NAME').output.split("=")[1]
             wm = wm.strip().replace('"', '') or "Unknown WM"
         return wm
 
     def get_process_name(self, pid):
-        return self.command_executor.run_command(f'ps -o comm= -p {pid}').output.strip()
+        return run_command(f'ps -o comm= -p {pid}').output.strip()
 
     def get_process_pid(self, pid_id):
-        return self.command_executor.run_command(f'ps -o ppid= -p {pid_id}').output.strip()
+        return run_command(f'ps -o ppid= -p {pid_id}').output.strip()
 
     def get_terminal_name(self):
         device_drama_pid = self.get_process_pid('$$')            # device-drama pid

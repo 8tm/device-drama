@@ -1,13 +1,27 @@
-from datetime import datetime
 from typing import Dict, List, Union
+from enum import Enum
+
+from device_drama.misc import calendar_version_to_date
 
 
 class PluginInfo:
     author: str = ''
     description: str = ''
     name: str = ''
-    version: str = ''
+    plugin_version: str = ''
     compatible_version: str = ''
+
+
+class PluginStatus(Enum):
+    COMPATIBLE = "compatible"
+    NEWER = "newer"
+    OLDER = "older"
+    UNKNOWN = "unknown"
+
+
+class CompatibilityException(Exception):
+    def __init__(self, status: PluginStatus):
+        self.status = status
 
 
 class BasePlugin:
@@ -16,11 +30,7 @@ class BasePlugin:
 
     def __init__(self) -> None:
         self.info = PluginInfo()
-        self.command_executor = None
         self.args = {}
-
-    def set_command_executor(self, command_executor) -> None:
-        self.command_executor = command_executor
 
     def run(self) -> List[Dict[str, str]]:
         return [
@@ -31,20 +41,15 @@ class BasePlugin:
             }
         ]
 
-    def _version_to_date(self, version: str) -> datetime:
-        """Converts a version string to a datetime object."""
-        year, month, day = map(int, version.split('.'))
-        # Add 2000 to year for correct date representation
-        return datetime(year + 2000, month, day)
-
-    def is_compatible(self, plugin_version: str, min_version: str, max_version: str) -> str:
-        created_date = self._version_to_date(plugin_version)
-        min_date = self._version_to_date(min_version)
-        max_date = self._version_to_date(max_version)
+    @staticmethod
+    def check_compatibility(plugin_version: str, min_version: str, max_version: str) -> PluginStatus:
+        created_date = calendar_version_to_date(plugin_version)
+        min_date = calendar_version_to_date(min_version)
+        max_date = calendar_version_to_date(max_version)
 
         if min_date <= created_date <= max_date:
-            return "="  # Plugin jest kompatybilny
+            return PluginStatus.COMPATIBLE
         elif created_date < min_date:
-            return "-"  # Plugin jest niekompatybilny (stworzony dla starszej wersji).
-        else:
-            return "+"  # Plugin jest niekompatybilny (stworzony dla nowszej wersji skryptu).
+            raise CompatibilityException(PluginStatus.OLDER)
+        elif created_date > max_date:
+            raise CompatibilityException(PluginStatus.NEWER)

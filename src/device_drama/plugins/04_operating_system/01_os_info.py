@@ -3,6 +3,7 @@ import platform
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.misc import run_command
 
 
 class DDPlugin(BasePlugin):
@@ -11,20 +12,20 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return OS Info'
         self.info.name = 'OS-Info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def get_packages_count(self):
         if platform.system() == "Linux":
-            dpkg_count = int(self.command_executor.run_command('dpkg -l | wc -l').output)
-            snap_count = int(self.command_executor.run_command('snap list | wc -l').output) - 1
+            dpkg_count = int(run_command('dpkg -l | wc -l').output)
+            snap_count = int(run_command('snap list | wc -l').output) - 1
             return f'{str(dpkg_count)} (dpkg), {str(snap_count)} (snap)'
         return [0, 0]
 
     def get_gtk_info(self, component):
         if platform.system() == "Linux":
             command = f'gsettings get org.gnome.desktop.interface {component}-theme'
-            return self.command_executor.run_command(command).output or "Unknown"
+            return run_command(command).output or "Unknown"
         return "Unknown"
 
     def run(self) -> List[Dict[str, str]]:
@@ -58,7 +59,7 @@ class DDPlugin(BasePlugin):
             {
                 "type": "row",
                 "title": "      Uptime: ",
-                "text": self.command_executor.run_command('uptime -p').output.replace('up ', ''),
+                "text": run_command('uptime -p').output.replace('up ', ''),
             },
             {
                 "type": "row",

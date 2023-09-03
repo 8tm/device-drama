@@ -9,7 +9,7 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return CPU info'
         self.info.name = 'CPU-Info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:

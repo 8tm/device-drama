@@ -1,0 +1,84 @@
+import os
+import re
+import shutil
+import subprocess
+from datetime import datetime
+from typing import List
+
+
+class CommandResult:
+    def __init__(self, output, return_code, error_msg):
+        self.output = output
+        self.return_code = return_code
+        self.error_msg = error_msg
+
+
+def run_command(command):
+    try:
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+        return CommandResult(result.stdout.strip(), result.returncode, result.stderr.strip())
+    except Exception as e:
+        return CommandResult("", -1, str(e))
+
+
+def simplify_size_string(size_str):
+    parts = size_str.split(' ')
+    value = float(parts[0])
+    formatted_value = str(int(value)) if value == int(value) else f"{value:.2f}"
+    return f"{formatted_value} {parts[1]}"
+
+
+def format_size(size_bytes):
+    b_size = 1024
+    units = ('B', 'KB', 'MB', 'GB', 'TB')
+    for unit in units:
+        if size_bytes < b_size:
+            raw_str = f"{size_bytes:.2f} {unit}"
+            return simplify_size_string(raw_str)
+        size_bytes /= b_size
+
+
+def calendar_version_to_date(version: str) -> datetime:
+    year, month, day = map(int, version.split('.'))
+    return datetime(year + 2000, month, day)
+
+
+def copy_files(source, destination, exclude_folders: List[str]):
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    for item in os.listdir(source):
+        source_path = os.path.join(source, item)
+        destination_path = os.path.join(destination, item)
+
+        if os.path.isdir(source_path):
+            for folder_name in exclude_folders:
+                if folder_name not in item:
+                # if '__pycache__' not in item:
+                    copy_files(source_path, destination_path, exclude_folders)
+        else:
+            shutil.copy2(source_path, destination_path)
+
+
+def get_formated_text(
+        text, background: int = 47, color: int = 30, bold: bool = False, center: bool = False, full_width: bool = True,
+        short_length: int = 0,
+):
+    columns = len(text)
+    if full_width:
+        columns = shutil.get_terminal_size().columns - short_length
+
+    _bold = ''
+    if bold:
+        _bold = 1
+
+    if center:
+        text = text.center(columns)
+    else:
+        text = text.ljust(columns)
+
+    return f"\033[{_bold};{color};{background}m{text}\033[m"
+
+
+def remove_formatting(text: str) -> str:
+    return re.sub(r'\033\[\d*(;\d+)*m', '', text).strip()

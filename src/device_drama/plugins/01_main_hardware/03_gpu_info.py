@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.misc import run_command
 
 
 class DDPlugin(BasePlugin):
@@ -9,11 +10,11 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return GPU info'
         self.info.name = 'GPU-Info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
-        gpu_info = self.command_executor.run_command('glxinfo').output
+        gpu_info = run_command('glxinfo').output
         gpu_name = [line.split(":")[1].strip() for line in gpu_info.split('\n') if "OpenGL renderer string" in line][0]
 
         gpu_available_memory = -1

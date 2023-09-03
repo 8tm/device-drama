@@ -2,6 +2,7 @@ import platform
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
+from device_drama.misc import run_command
 
 
 class Monitor:
@@ -48,12 +49,12 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Monitors info'
         self.info.name = 'Monitors-Info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def get_monitors_info(self):
         if platform.system() == "Linux":
-            xrandr_output = self.command_executor.run_command('xrandr | grep " connected" | grep "+"').output
+            xrandr_output = run_command('xrandr | grep " connected" | grep "+"').output
             monitor_lines = xrandr_output.split('\n')
 
             monitors = []

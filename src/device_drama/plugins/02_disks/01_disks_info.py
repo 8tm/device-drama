@@ -5,7 +5,7 @@ import subprocess
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin
-from device_drama.utils import format_size, simplify_size_string
+from device_drama.misc import format_size, simplify_size_string
 
 
 class SmartInfo:
@@ -167,7 +167,7 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Disks info'
         self.info.name = 'Disks-Info'
-        self.info.version = '23.8.20'
+        self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
