@@ -14,7 +14,7 @@ class SmartInfo:
         self.data = self._fetch_smart_info()
 
     def _fetch_smart_info(self):
-        cmd = f"sudo smartctl --info /dev/{self.disk}"
+        cmd = f'sudo smartctl --info /dev/{self.disk}'
         try:
             output = subprocess.check_output(cmd, shell=True).decode('utf-8')
         except subprocess.CalledProcessError:
@@ -45,22 +45,19 @@ class SmartInfo:
 
 
 class DiskInfo:
-    # use_sudo: bool = False
-
-    def __init__(self, disk):  # , use_sudo: bool = False):
+    def __init__(self, disk):
         self.disk = disk
-        # self.use_sudo = use_sudo
         self.lsblk_info = {}
         self.info = {
-            "model": "",
-            "name": "",
-            "tran": "",
-            "rota": False,
-            "capacity": "------",
-            "rotations": "----",
-            "mounted": 'No',
+            'model': '',
+            'name': '',
+            'tran': '',
+            'rota': False,
+            'capacity': '------',
+            'rotations': '----',
+            'mounted': 'No',
         }
-        # if self.use_sudo:
+
         if os.geteuid() == 0:
             self.smart_info = SmartInfo(disk)
         self._fetch_disk_info()
@@ -74,14 +71,12 @@ class DiskInfo:
                 return 'YES'
         return 'NO'
 
-    def _get_disk_total_size(self, disk_name):
-        size_path = f"/sys/block/{disk_name}/size"
-        sector_size_path = f"/sys/block/{disk_name}/queue/hw_sector_size"
-
-        with open(size_path, 'r') as f:
+    @staticmethod
+    def _get_disk_total_size(disk_name):
+        with open(f'/sys/block/{disk_name}/size', 'r') as f:
             num_sectors = int(f.read().strip())
 
-        with open(sector_size_path, 'r') as f:
+        with open(f'/sys/block/{disk_name}/queue/hw_sector_size', 'r') as f:
             sector_size = int(f.read().strip())
 
         return num_sectors * sector_size
@@ -89,8 +84,8 @@ class DiskInfo:
     def _get_disk_usage(self, disk_name):
         total_space = self._get_disk_total_size(disk_name)
 
-        with open("/proc/mounts", "r") as f:
-            mounts = sorted([line.split()[1] for line in f if line.startswith(f"/dev/{disk_name}")])
+        with open('/proc/mounts', 'r') as mounts_file:
+            mounts = sorted([line.split()[1] for line in mounts_file if line.startswith(f'/dev/{disk_name}')])
 
         primary_mount = mounts[0] if mounts else None
 
@@ -107,58 +102,52 @@ class DiskInfo:
         free_percentage = 100 - used_percentage
 
         return {
-            "size": format_size(total_space),
-            "used": format_size(used_space),
-            "free": format_size(free_space),
-            "used_percentage": f"{used_percentage:.0f}%",
-            "free_percentage": f"{free_percentage:.0f}%"
+            'size': format_size(total_space),
+            'used': format_size(used_space),
+            'free': format_size(free_space),
+            'used_percentage': f'{used_percentage:.0f}%',
+            'free_percentage': f'{free_percentage:.0f}%'
         }
 
     def _fetch_disk_info(self):
-        cmd = f"lsblk -o MODEL,NAME,TRAN,ROTA -J"
+        cmd = f'lsblk -o MODEL,NAME,TRAN,ROTA -J'
         output = subprocess.check_output(cmd, shell=True).decode('utf-8')
         data = json.loads(output)
 
-        for device in data["blockdevices"]:
-            if device["name"] == self.disk:
+        for device in data['blockdevices']:
+            if device['name'] == self.disk:
                 self.lsblk_info = device
-                self.lsblk_info['mounted'] = self._is_mounted(device["name"])
+                self.lsblk_info['mounted'] = self._is_mounted(device['name'])
 
-                for param, value in self._get_disk_usage(device["name"]).items():
+                for param, value in self._get_disk_usage(device['name']).items():
                     self.lsblk_info[param] = value
 
-                # del self.lsblk_info['children']
                 break
 
         self.info.update(self.lsblk_info)
-        # if self.use_sudo:
+
         if os.geteuid() == 0:
             self.info.update(self.smart_info.data)
 
     @staticmethod
     def list_all_disks():
-        cmd = "lsblk -o NAME,TYPE -n -l | grep -E '^(sd|nvme).*disk' | awk '{print $1}'"
-        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
-        return [disk.strip() for disk in output.splitlines()]
+        return sorted([device for device in os.listdir('/sys/block/') if device.startswith(('sd', 'nvme'))])
 
     def __str__(self):
         return json.dumps(self.info, indent=4)
 
 
 class Disks:
-    # use_sudo: bool = False
-
-    def __init__(self):  # , use_sudo):
-        # self.use_sudo = use_sudo
+    def __init__(self):
         self.disks = self._fetch_all_disks_info()
 
-    def _fetch_all_disks_info(self):
+    @staticmethod
+    def _fetch_all_disks_info():
         disk_names = DiskInfo.list_all_disks()
-        # return [DiskInfo(disk_name, self.use_sudo) for disk_name in disk_names]
         return [DiskInfo(disk_name) for disk_name in disk_names]
 
     def __str__(self):
-        return "\n".join([str(disk_info) for disk_info in self.disks])
+        return '\n'.join([str(disk_info) for disk_info in self.disks])
 
 
 class DDPlugin(BasePlugin):
@@ -172,9 +161,19 @@ class DDPlugin(BasePlugin):
 
     def run(self) -> List[Dict[str, str]]:
         disks_info = []
-        # disks = Disks(False)
         disks = Disks()
-        line = '{model} {capacity} {tran} {rotations} {size} {used} {free} {used_percentage} {free_percentage} {mounted}'
+        columns = (
+            '{model} '
+            '{capacity} '
+            '{tran} '
+            '{rotations} '
+            '{size} '
+            '{used} '
+            '{free} '
+            '{used_percentage} '
+            '{free_percentage} '
+            '{mounted}'
+        )
         header = {
             'model': '{:20}'.format('Model'),
             'capacity': '{:>6}'.format('Size'),
@@ -192,7 +191,7 @@ class DDPlugin(BasePlugin):
             {
                 'type': 'header',
                 'title': 'ID ',
-                'text': line.format(**header),
+                'text': columns.format(**header),
             }
         )
 
@@ -213,7 +212,7 @@ class DDPlugin(BasePlugin):
                 {
                     'type': 'row',
                     'title': f'{index:^3}',
-                    'text': line.format(**params),
+                    'text': columns.format(**params),
                 }
             )
 

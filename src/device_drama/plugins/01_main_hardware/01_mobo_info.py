@@ -21,9 +21,9 @@ class DDPlugin(BasePlugin):
 
         return [
             {
-                "type": "row",
-                "title": "MoBo: ",
-                "text": f"{company} {model}",
+                'type': 'row',
+                'title': 'MoBo: ',
+                'text': f'{company} {model}',
             }
         ]
 

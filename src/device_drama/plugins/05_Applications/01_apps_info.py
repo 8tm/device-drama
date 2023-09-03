@@ -15,25 +15,29 @@ class DDPlugin(BasePlugin):
         self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
-    def get_shell_info(self):
+    @staticmethod
+    def get_shell_info():
         shell_path = os.environ.get('SHELL', 'Unknown Shell')
         shell_version_output = run_command(f'{shell_path} --version').output
-        shell_version = "Unknown Version"
+        shell_version = 'Unknown Version'
         if shell_version_output.split():
             shell_version = shell_version_output.split()[3].split('(')[0]
-        return f"{os.path.basename(shell_path).title()} {shell_version}"
+        return f'{os.path.basename(shell_path).title()} {shell_version}'
 
-    def get_window_manager(self):
-        wm = "Unknown WM"
-        if platform.system() == "Linux":
-            wm = run_command('xprop -root _NET_WM_NAME').output.split("=")[1]
-            wm = wm.strip().replace('"', '') or "Unknown WM"
+    @staticmethod
+    def get_window_manager():
+        wm = 'Unknown WM'
+        if platform.system() == 'Linux':
+            wm = run_command('xprop -root _NET_WM_NAME').output.split('=')[1]
+            wm = wm.strip().replace('"', '') or 'Unknown WM'
         return wm
 
-    def get_process_name(self, pid):
+    @staticmethod
+    def get_process_name(pid):
         return run_command(f'ps -o comm= -p {pid}').output.strip()
 
-    def get_process_pid(self, pid_id):
+    @staticmethod
+    def get_process_pid(pid_id):
         return run_command(f'ps -o ppid= -p {pid_id}').output.strip()
 
     def get_terminal_name(self):
@@ -59,19 +63,19 @@ class DDPlugin(BasePlugin):
 
         return [
             {
-                "type": "row",
-                "title": "       Shell: ",
-                "text": self.get_shell_info(),
+                'type': 'row',
+                'title': '       Shell: ',
+                'text': self.get_shell_info(),
             },
             {
-                "type": "row",
-                "title": "          WM: ",
-                "text": self.get_window_manager(),
+                'type': 'row',
+                'title': '          WM: ',
+                'text': self.get_window_manager(),
             },
             {
-                "type": "row",
-                "title": "    Terminal: ",
-                "text": self.get_terminal_name(),
+                'type': 'row',
+                'title': '    Terminal: ',
+                'text': self.get_terminal_name(),
             }
 
         ]

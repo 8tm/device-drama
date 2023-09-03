@@ -13,14 +13,14 @@ class DDPlugin(BasePlugin):
         self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
-        with open("/proc/cpuinfo", "r") as file:
+        with open('/proc/cpuinfo', 'r') as file:
             for line in file:
-                if "model name" in line:
+                if 'model name' in line:
                     return [
                         {
-                            "type": "row",
-                            "title": " CPU: ",
-                            "text": line.split(":")[1].strip(),
+                            'type':  'row',
+                            'title': ' CPU: ',
+                            'text':  line.split(':')[1].strip(),
                         }
                     ]
-        return [{"type": "row", "title": " CPU: ", "text": ''}]
+        return [{'type': 'row', 'title': ' CPU: ', 'text': ''}]

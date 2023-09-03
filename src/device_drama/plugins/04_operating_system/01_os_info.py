@@ -15,18 +15,38 @@ class DDPlugin(BasePlugin):
         self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
-    def get_packages_count(self):
-        if platform.system() == "Linux":
-            dpkg_count = int(run_command('dpkg -l | wc -l').output)
-            snap_count = int(run_command('snap list | wc -l').output) - 1
-            return f'{str(dpkg_count)} (dpkg), {str(snap_count)} (snap)'
-        return [0, 0]
+    @staticmethod
+    def get_packages_count():
+        if platform.system() == 'Linux':
+            dpkg_output = run_command('dpkg --get-selections').output
+            dpkg_count = len([line for line in dpkg_output.split('\n') if "deinstall" not in line]) - 1
 
-    def get_gtk_info(self, component):
-        if platform.system() == "Linux":
+            snap_output = run_command('snap list').output
+            snap_count = len(snap_output.split('\n')) - 1
+
+            return f'{dpkg_count} (dpkg), {snap_count} (snap)'
+        return '0 (dpkg), 0 (snap)'
+
+    @staticmethod
+    def get_gtk_info(component):
+        if platform.system() == 'Linux':
             command = f'gsettings get org.gnome.desktop.interface {component}-theme'
-            return run_command(command).output or "Unknown"
-        return "Unknown"
+            return run_command(command).output or 'Unknown'
+        return 'Unknown'
+
+    @staticmethod
+    def get_uptime():
+        with open('/proc/uptime', 'r') as f:
+            uptime_seconds = float(f.readline().split()[0])
+
+            days = int(uptime_seconds // (24 * 3600))
+            uptime_seconds = uptime_seconds % (24 * 3600)
+            hours = int(uptime_seconds // 3600)
+            uptime_seconds %= 3600
+            minutes = int(uptime_seconds // 60)
+            uptime_seconds %= 60
+            seconds = int(uptime_seconds)
+            return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
     def run(self) -> List[Dict[str, str]]:
         os_release = {}
@@ -37,45 +57,44 @@ class DDPlugin(BasePlugin):
 
         return [
             {
-                "type": "row",
-                "title": "Distribution: ",
-                "text": os_release.get('NAME', 'Unknown OS'),
+                'type': 'row',
+                'title': 'Distribution: ',
+                'text': os_release.get('NAME', 'Unknown OS'),
             },
             {
-                "type": "row",
-                "title": "Architecture: ",
-                "text": os.uname().machine,
+                'type': 'row',
+                'title': 'Architecture: ',
+                'text': os.uname().machine,
             },
             {
-                "type": "row",
-                "title": "   Code Name: ",
-                "text": os_release.get('VERSION_CODENAME', 'Unknown OS').title(),
+                'type': 'row',
+                'title': '   Code Name: ',
+                'text': os_release.get('VERSION_CODENAME', 'Unknown OS').title(),
             },
             {
-                "type": "row",
-                "title": "      Kernel: ",
-                "text": os.uname().release,
+                'type': 'row',
+                'title': '      Kernel: ',
+                'text': os.uname().release,
             },
             {
-                "type": "row",
-                "title": "      Uptime: ",
-                "text": run_command('uptime -p').output.replace('up ', ''),
+                'type': 'row',
+                'title': '      Uptime: ',
+                'text': self.get_uptime(),
             },
             {
-                "type": "row",
-                "title": "    Packages: ",
-                "text": self.get_packages_count(),
+                'type': 'row',
+                'title': '    Packages: ',
+                'text': self.get_packages_count(),
             },
 
-
             {
-                "type": "row",
-                "title": "       Theme: ",
-                "text": self.get_gtk_info('gtk'),
+                'type': 'row',
+                'title': '       Theme: ',
+                'text': self.get_gtk_info('gtk'),
             },
             {
-                "type": "row",
-                "title": "       Icons: ",
-                "text": self.get_gtk_info('icon'),
+                'type': 'row',
+                'title': '       Icons: ',
+                'text': self.get_gtk_info('icon'),
             }
         ]

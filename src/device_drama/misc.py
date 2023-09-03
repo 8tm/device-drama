@@ -18,14 +18,14 @@ def run_command(command):
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
         return CommandResult(result.stdout.strip(), result.returncode, result.stderr.strip())
     except Exception as e:
-        return CommandResult("", -1, str(e))
+        return CommandResult('', -1, str(e))
 
 
 def simplify_size_string(size_str):
     parts = size_str.split(' ')
     value = float(parts[0])
-    formatted_value = str(int(value)) if value == int(value) else f"{value:.2f}"
-    return f"{formatted_value} {parts[1]}"
+    formatted_value = str(int(value)) if value == int(value) else f'{value:.2f}'
+    return f'{formatted_value} {parts[1]}'
 
 
 def format_size(size_bytes):
@@ -33,7 +33,7 @@ def format_size(size_bytes):
     units = ('B', 'KB', 'MB', 'GB', 'TB')
     for unit in units:
         if size_bytes < b_size:
-            raw_str = f"{size_bytes:.2f} {unit}"
+            raw_str = f'{size_bytes:.2f} {unit}'
             return simplify_size_string(raw_str)
         size_bytes /= b_size
 
@@ -60,7 +60,7 @@ def copy_files(source, destination, exclude_folders: List[str]):
             shutil.copy2(source_path, destination_path)
 
 
-def get_formated_text(
+def get_formatted_text(
         text, background: int = 47, color: int = 30, bold: bool = False, center: bool = False, full_width: bool = True,
         short_length: int = 0,
 ):
@@ -77,7 +77,7 @@ def get_formated_text(
     else:
         text = text.ljust(columns)
 
-    return f"\033[{_bold};{color};{background}m{text}\033[m"
+    return f'\033[{_bold};{color};{background}m{text}\033[m'
 
 
 def remove_formatting(text: str) -> str:

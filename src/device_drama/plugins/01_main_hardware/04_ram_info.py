@@ -14,16 +14,16 @@ class DDPlugin(BasePlugin):
         self.info.compatible_version = '23.8.30'
 
     def run(self) -> List[Dict[str, str]]:
-        with open("/proc/meminfo", "r") as f:
+        with open('/proc/meminfo', 'r') as f:
             lines = f.readlines()
 
         total_memory = 0
         used_memory = 0
 
         for line in lines:
-            if line.startswith("MemTotal:"):
+            if line.startswith('MemTotal:'):
                 total_memory = int(line.split()[1]) * 1024   # Convert from KiB to MiB
-            elif line.startswith("MemAvailable:"):
+            elif line.startswith('MemAvailable:'):
                 free_memory = int(line.split()[1]) * 1024  # Convert from KiB to MiB
                 used_memory = total_memory - free_memory
 
@@ -33,8 +33,8 @@ class DDPlugin(BasePlugin):
 
         return [
             {
-                "type": "row",
-                "title": " RAM: ",
-                "text": f'used {used_memory} of {total_memory} ({percentage_used_memory} %)',
+                'type': 'row',
+                'title': ' RAM: ',
+                'text': f'Used {used_memory} of {total_memory} ({percentage_used_memory} %)',
             }
         ]

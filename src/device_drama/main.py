@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple
 
 from device_drama.classes.base_plugin import BasePlugin, PluginStatus, CompatibilityException
 from device_drama.classes.config import Config
-from device_drama.misc import copy_files, get_formated_text, remove_formatting
+from device_drama.misc import copy_files, get_formatted_text, remove_formatting
 
 
 def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
@@ -46,7 +46,9 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
 
                 try:
                     status = plugin_instance.check_compatibility(
-                        plugin_instance.info.compatible_version, '23.1.1', Config.metadata['Version'],
+                        plugin_instance.info.compatible_version,
+                        Config.compatible_from_version,
+                        Config.metadata['Version'],
                     )
                     if status == PluginStatus.COMPATIBLE:
                         # print(f'Plugin "{plugin_instance.info.name}" jest kompatybilny!')
@@ -105,8 +107,8 @@ def generate_screen(plugin_modules) -> List[str]:
     screen = []
 
     screen.append(
-        get_formated_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False) +
-        get_formated_text(
+        get_formatted_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False) +
+        get_formatted_text(
             text=f'Device-Drama v{Config.metadata["Version"]}        '
                  f'({Config.metadata["Home-page"]})',
             bold=True,
@@ -115,10 +117,10 @@ def generate_screen(plugin_modules) -> List[str]:
             background=Config.colors[3]['background'],
             color=color,
         ) +
-        get_formated_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False)
+        get_formatted_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False)
     )
     screen.append(
-        get_formated_text(
+        get_formatted_text(
             text=' ',
             bold=True,
             center=False,
@@ -131,9 +133,9 @@ def generate_screen(plugin_modules) -> List[str]:
     for folder_name, plugins_in_folder in plugin_modules.items():
         header = '        ' + ' '.join(folder_name.split('_')[1:]).title()
         screen.append(
-            get_formated_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False) +
-            get_formated_text(text=header, bold=True, center=False, short_length=2) +
-            get_formated_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False)
+            get_formatted_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False) +
+            get_formatted_text(text=header, bold=True, center=False, short_length=2) +
+            get_formatted_text(text=' ', background=Config.colors[3]['background'], color=color, full_width=False)
         )
 
         plugin_number += 1
@@ -152,22 +154,22 @@ def generate_screen(plugin_modules) -> List[str]:
                     plugin_number += 1
                 line = f' {line["title"]}{line["text"]}'  #  [{dd_plugin.info.name}]'
                 screen.append(
-                    get_formated_text(
+                    get_formatted_text(
                         text=' ', background=Config.colors[3]['background'], color=color, full_width=False,
                     ) +
-                    get_formated_text(
+                    get_formatted_text(
                         text=line,
                         background=Config.colors[plugin_number % 2]['background'],
                         color=Config.colors[plugin_number % 2]['color'],
                         short_length=2,
                     ) +
-                    get_formated_text(
+                    get_formatted_text(
                         text=' ', background=Config.colors[3]['background'], color=color, full_width=False,
                     )
                 )
 
         screen.append(
-            get_formated_text(
+            get_formatted_text(
                 text='', bold=True, center=True, background=Config.colors[3]['background'], color=color,
             )
         )

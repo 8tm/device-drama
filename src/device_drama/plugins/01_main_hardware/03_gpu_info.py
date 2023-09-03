@@ -15,27 +15,29 @@ class DDPlugin(BasePlugin):
 
     def run(self) -> List[Dict[str, str]]:
         gpu_info = run_command('glxinfo').output
-        gpu_name = [line.split(":")[1].strip() for line in gpu_info.split('\n') if "OpenGL renderer string" in line][0]
+        gpu_name = [line.split(':')[1].strip() for line in gpu_info.split('\n') if 'OpenGL renderer string' in line][0]
 
         gpu_available_memory = -1
         gpu_total_memory = -1000
 
         for line in gpu_info.split('\n'):
-            if "Currently available dedicated video memory" in line:
-                gpu_available_memory = int(line.split(":")[1].strip().replace("MB", ""))
+            if 'Currently available dedicated video memory' in line:
+                gpu_available_memory = int(line.split(':')[1].strip().replace('MB', ''))
 
         for line in gpu_info.split('\n'):
-            if "Total available memory" in line:
-                gpu_total_memory = int(line.split(":")[1].strip().replace("MB", ""))
+            if 'Total available memory' in line:
+                gpu_total_memory = int(line.split(':')[1].strip().replace('MB', ''))
 
         gpu_info = gpu_name
         if gpu_total_memory // 1000 > 0:
-            gpu_info += f' (Used {(gpu_total_memory - gpu_available_memory) // 1000} GB of {gpu_total_memory // 1000} GB)'
+            gpu_info += (
+                f' (Used {(gpu_total_memory - gpu_available_memory) // 1000} GB of {gpu_total_memory // 1000} GB)'
+            )
 
         return [
             {
-                "type": "row",
-                "title": " GPU: ",
-                "text": gpu_info,
+                'type': 'row',
+                'title': ' GPU: ',
+                'text': gpu_info,
             }
         ]

@@ -24,23 +24,26 @@ class Monitor:
         for part in info.split():
             if '+' in part and part.count('+') == 2:
                 return part.split('+')[1:]
-        return ["0", "0"]
+        return ['0', '0']
 
     def determine_orientation(self):
         width, height = [int(dim) for dim in self.resolution.split('x')]
-        return "vertical" if width < height else "horizontal"
+        return 'vertical' if width < height else 'horizontal'
 
     def set_id(self, monitor_id):
         self.id = monitor_id
 
     def visual_representation(self):
-        vertical_symbol = '\u2395'  # Monitor pionowy
-        horizontal_symbol = '\u200A\u2BF3\u200A'  # Monitor poziomy na łapkach
+        vertical_symbol = '\u2395'                # Monitor pionowy
+        horizontal_symbol = '\u200A\u2BF3\u200A'  # Monitor poziomy (na podstawce)
 
-        return vertical_symbol if self.orientation == "vertical" else horizontal_symbol
+        return vertical_symbol if self.orientation == 'vertical' else horizontal_symbol
 
     def __str__(self):
-        return f"ID: {self.id}, Resolution: {self.resolution}, Position: {'x'.join(self.position)}, Orientation: {self.orientation}"
+        return (
+            f'ID: {self.id}, Resolution: {self.resolution}, Position: {"x".join(self.position)}, '
+            f'Orientation: {self.orientation}'
+        )
 
 
 class DDPlugin(BasePlugin):
@@ -52,10 +55,11 @@ class DDPlugin(BasePlugin):
         self.info.plugin_version = '23.8.20'
         self.info.compatible_version = '23.8.30'
 
-    def get_monitors_info(self):
-        if platform.system() == "Linux":
-            xrandr_output = run_command('xrandr | grep " connected" | grep "+"').output
-            monitor_lines = xrandr_output.split('\n')
+    @staticmethod
+    def get_monitors_info():
+        if platform.system() == 'Linux':
+            xrandr_output = run_command('xrandr').output
+            monitor_lines = [line for line in xrandr_output.split('\n') if " connected" in line and "+" in line]
 
             monitors = []
             for line in monitor_lines:
@@ -73,7 +77,7 @@ class DDPlugin(BasePlugin):
         monitors = self.get_monitors_info()
         total_width = sum([int(monitor.resolution.split('x')[0]) for monitor in monitors])
         max_height = max([int(monitor.resolution.split('x')[1]) for monitor in monitors])
-        return f"{total_width}x{max_height}"
+        return f'{total_width}x{max_height}'
 
     def run(self) -> List[Dict[str, str]]:
         monitors = self.get_monitors_info()

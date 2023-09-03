@@ -13,10 +13,10 @@ class PluginInfo:
 
 
 class PluginStatus(Enum):
-    COMPATIBLE = "compatible"
-    NEWER = "newer"
-    OLDER = "older"
-    UNKNOWN = "unknown"
+    COMPATIBLE = 'compatible'
+    NEWER = 'newer'
+    OLDER = 'older'
+    UNKNOWN = 'unknown'
 
 
 class CompatibilityException(Exception):
@@ -35,9 +35,9 @@ class BasePlugin:
     def run(self) -> List[Dict[str, str]]:
         return [
             {
-                "type": "row",
-                "title": "DDPlugin",
-                "text": "BASE DDPlugin",
+                'type':  'row',
+                'title': 'DDPlugin',
+                'text':  'BASE DDPlugin',
             }
         ]
 
