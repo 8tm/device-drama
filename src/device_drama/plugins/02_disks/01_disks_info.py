@@ -177,7 +177,7 @@ class DDPlugin(BasePlugin):
             '{mounted}'
         )
         header = {
-            'model': '{:20}'.format('Model'),
+            'model': '{:26}'.format('Model'),
             'capacity': '{:>6}'.format('Size'),
             'tran': '{:>4}'.format('Tran'),
             'rotations': '{:^5}'.format('RPM'),
@@ -199,7 +199,7 @@ class DDPlugin(BasePlugin):
 
         for index, disk in enumerate(disks.disks, start=1):
             params = {
-                'model': '{:20}'.format(disk.info['model']),
+                'model': '{:26}'.format(disk.info['model']),
                 'capacity': '{:>6}'.format(disk.info['capacity']),
                 'tran': '{:>4}'.format(disk.info['tran'].upper()),
                 'rotations': '{:>5}'.format(disk.info['rotations']),
