@@ -29,7 +29,7 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
 
     for subdir_path in subdirs:
         plugins_files_in_subdir = sorted([file for file in subdir_path.iterdir() if file.suffix == '.py'])
-
+        logger.info(f'Scaning folder "{subdir_path}"')
         plugins = {}
         for plugin_file in plugins_files_in_subdir:
             plugin_name = plugin_file.stem

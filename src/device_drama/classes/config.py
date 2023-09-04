@@ -1,5 +1,6 @@
 import argparse
 import importlib.metadata
+from pathlib import Path
 from typing import Dict, List
 
 
@@ -12,5 +13,6 @@ class Config:
         {'background': 250, 'color': 44},
         {'background': 250, 'color': 41},
     ]
+    logger_file_path: Path = Path.home() / '.local' / 'share' / 'device-drama' / 'device-drama.log'
     compatible_from_version = '23.9.4'
     metadata = importlib.metadata.metadata(str(__package__).replace('.classes', ''))

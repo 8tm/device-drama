@@ -14,3 +14,6 @@ dist/
 temporary/
 compileMsgCat.log
 __tests__/
+own_plugins/
+OLD/
+TESTS/

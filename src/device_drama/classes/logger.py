@@ -1,22 +1,33 @@
 import logging
+# import os
+
+from device_drama.classes.config import Config
 
 
 class Logger:
+    separator_logged = False
+
     def __init__(self, name):
         self._logger = logging.getLogger(name)
 
         if not logging.root.handlers:
             self.setup_logging()
 
-        self.info('Logger initiated!')
+        if not Logger.separator_logged:
+            self._logger.info(f'{6*"-"} <<<< NEXT EXECUTION >>>> {6*"-"}')
+            Logger.separator_logged = True
+
+        self.info('Logger initiated.')
 
     @staticmethod
     def setup_logging():
+        Config.logger_file_path.parent.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
-            filename='/tmp/device-drama.log',
+            filename=Config.logger_file_path,
             level=logging.INFO,
             format='[{asctime}.{msecs:0<3.0f}] [{levelname:7}]  {message}  [{name}]',
             datefmt='%Y-%m-%d %H:%M:%S',
+            filemode='a',
             style='{',
         )
 
@@ -30,4 +41,4 @@ class Logger:
         self._logger.error(message)
 
     def __del__(self):
-        self.info('Logger terminated!')
+        self.info('Logger terminated.')
