@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-from device_drama.classes.base_plugin import BasePlugin, PluginStatus, CompatibilityException
+from device_drama.classes.base_plugin import BasePlugin
 from device_drama.classes.config import Config
 from device_drama.classes.logger import Logger
+from device_drama.classes.plugin_validator import PluginStatus, PluginValidator
 from device_drama.misc import copy_files, get_formatted_text, remove_formatting, run_command
 
 
@@ -51,40 +52,56 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
             plugin_class_name = 'DDPlugin'
             try:
                 plugin_class = getattr(plugin_module, plugin_class_name)
+                plugin_validator = PluginValidator(plugin_class)
+
+                if not plugin_validator.validated():
+                    continue
+
                 plugin_instance = plugin_class()
 
-                try:
-                    status = plugin_instance.check_compatibility(
+                status = plugin_validator.check_compatibility(
                         plugin_instance.info.compatible_version,
                         Config.compatible_from_version,
                         Config.metadata['Version'],
                     )
-                    if status == PluginStatus.COMPATIBLE:
-                        # print(f'Plugin "{plugin_instance.info.name}" jest kompatybilny!')
-                        plugins[plugin_name] = plugin_instance
-                except CompatibilityException as e:
-                    if e.status == PluginStatus.NEWER:
-                        msg = (
-                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                            f'application! It was made for a newer version!'
-                        )
-                        logger.warning(msg)
-                    elif e.status == PluginStatus.OLDER:
-                        msg = (
-                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                            f'application! It was made for an older version!'
-                        )
-                        logger.warning(msg)
-                    else:
-                        msg = (
-                            f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                            f'application! It is not possible to determine what version of the application it was '
-                            f'created for.'
-                        )
-                        logger.warning(msg)
+
+                if status == PluginStatus.COMPATIBLE:
+                    plugins[plugin_name] = plugin_instance
+                # else:
+                #     print(f'Cos nie tak, status: {status}')
+
+                # try:
+                #     status = plugin_instance.check_compatibility(
+                #         plugin_instance.info.compatible_version,
+                #         Config.compatible_from_version,
+                #         Config.metadata['Version'],
+                #     )
+                #     if status == PluginStatus.COMPATIBLE:
+                #         # print(f'Plugin "{plugin_instance.info.name}" jest kompatybilny!')
+                #         plugins[plugin_name] = plugin_instance
+                # except CompatibilityException as e:
+                #     if e.status == PluginStatus.NEWER:
+                #         msg = (
+                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                #             f'application! It was made for a newer version!'
+                #         )
+                #         logger.warning(msg)
+                #     elif e.status == PluginStatus.OLDER:
+                #         msg = (
+                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                #             f'application! It was made for an older version!'
+                #         )
+                #         logger.warning(msg)
+                #     else:
+                #         msg = (
+                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
+                #             f'application! It is not possible to determine what version of the application it was '
+                #             f'created for.'
+                #         )
+                #         logger.warning(msg)
 
             except AttributeError:
-                logger.warning(f'Plugin class "{plugin_class_name}" not found in module "{plugin_name}". Skipping...')
+                logger.warning(f'Proper plugin class "{plugin_class_name}" not found in module "{plugin_name}".')
 
         all_plugins[subdir_path.name] = plugins
 
@@ -228,11 +245,7 @@ def check_package_installed(package_name):
 
 def main():
     """
-    jeżeli plugin miał podaną wersję mieszcącą sie w tycm przedziale to wczytaj plugin.
-    Jeżeli nie to nie wczytuj pluginu (wywal go z listy?)
-    
     Dodać wyświetlanie listy pluginów w formie tabeli (na podstawie podanej ściezki do pluginów)
-
     Dodać informacje jak nie ma wymaganych atrybutów (minimum jakie oczekuje od pluginu aby posiadał)
     
     """
