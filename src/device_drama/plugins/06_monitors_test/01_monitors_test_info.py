@@ -23,7 +23,13 @@ class Monitor:
         self.id = None
 
         self.interface = edid_info["interface"] if edid_info else None
-        self.model = f"{get_full_brand_name(edid_info['model'].split()[0])} {edid_info['model'].split()[1]}" if edid_info else "Unknown"
+        # self.model = f"{get_full_brand_name(edid_info['model'].split()[0])} {edid_info['model'].split()[1]}" if edid_info else "Unknown"
+        parts = edid_info['model'].split() if edid_info else []
+        brand = get_full_brand_name(parts[0]) if parts else "Unknown"
+        model_name = parts[1] if len(parts) > 1 else ""
+        self.model = f"{brand} {model_name}" if edid_info else "Unknown"
+
+
         self.creation_date = edid_info["creation_date"] if edid_info else "Unknown"
 
     @staticmethod
