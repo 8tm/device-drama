@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 from device_drama.classes.base_plugin import BasePlugin, PluginStatus, CompatibilityException
 from device_drama.classes.config import Config
 from device_drama.classes.logger import Logger
-from device_drama.misc import copy_files, get_formatted_text, remove_formatting
+from device_drama.misc import copy_files, get_formatted_text, remove_formatting, run_command
 
 
 logger = Logger(__name__)
@@ -221,6 +221,11 @@ def export_plugins(source, destination):
         logger.error(msg)
 
 
+def check_package_installed(package_name):
+    command_result = run_command(f"dpkg -l {package_name}")
+    return command_result.return_code == 0
+
+
 def main():
     """
     jeżeli plugin miał podaną wersję mieszcącą sie w tycm przedziale to wczytaj plugin.
@@ -233,6 +238,17 @@ def main():
     """
 
     logger.info('---------- STARTED  ----------')
+
+    not_installed_packages = [pkg for pkg in Config.required_packages if not check_package_installed(pkg)]
+    if len(not_installed_packages) > 0:
+        print(
+            '\n  Please install required packages using one of command:\n\n'
+            f'      sudo apt install {" ".join(not_installed_packages)}\n'
+            f'      sudo apt-get install {" ".join(not_installed_packages)}\n'
+            f'      sudo aptitude install {" ".join(not_installed_packages)}\n'
+        )
+        sys.exit(1)
+
     Config.arguments = parser().parse_args()
 
     if Config.arguments.plugins_export_dir:

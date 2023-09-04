@@ -14,5 +14,6 @@ class Config:
         {'background': 250, 'color': 41},
     ]
     logger_file_path: Path = Path.home() / '.local' / 'share' / 'device-drama' / 'device-drama.log'
+    required_packages = ('lolcat', 'edid-decode', 'smartmontools')
     compatible_from_version = '23.9.4'
     metadata = importlib.metadata.metadata(str(__package__).replace('.classes', ''))
