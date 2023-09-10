@@ -17,6 +17,37 @@ from device_drama.misc import copy_files, get_formatted_text, remove_formatting,
 logger = Logger(__name__)
 
 
+def parser() -> argparse.ArgumentParser:
+    argument_parser = argparse.ArgumentParser(description='Device-Drama')
+
+    argument_parser.add_argument(
+        '-b', '--background', action='store_true', required=False, default=False,
+        dest='background', help='Add background layout',
+    )
+
+    argument_parser.add_argument(
+        '-c', '--color', action='store_true', required=False, default=False,
+        dest='color', help='Use colored output',
+    )
+
+    argument_parser.add_argument(
+        '-d', '--dir', type=str, default=str(Path(__file__).parent / 'plugins'),
+        dest='plugins_dir', help='Set transcription file names',
+    )
+
+    argument_parser.add_argument(
+        '-e', '--export', required=False, default=None, type=str,
+        dest='plugins_export_dir', help='Export plugins to path',
+    )
+
+    argument_parser.add_argument(
+        '-s', '--seed', type=int, default=None,
+        dest='seed', help='Set seed integer value for color parameter',
+    )
+
+    return argument_parser
+
+
 def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
     exclude_folders: Tuple[str, ...] = ('__pycache__',)
     logger.info(f'Adding plugins path "{plugins_path}" to system PATH')
@@ -67,38 +98,6 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
 
                 if status == PluginStatus.COMPATIBLE:
                     plugins[plugin_name] = plugin_instance
-                # else:
-                #     print(f'Cos nie tak, status: {status}')
-
-                # try:
-                #     status = plugin_instance.check_compatibility(
-                #         plugin_instance.info.compatible_version,
-                #         Config.compatible_from_version,
-                #         Config.metadata['Version'],
-                #     )
-                #     if status == PluginStatus.COMPATIBLE:
-                #         # print(f'Plugin "{plugin_instance.info.name}" jest kompatybilny!')
-                #         plugins[plugin_name] = plugin_instance
-                # except CompatibilityException as e:
-                #     if e.status == PluginStatus.NEWER:
-                #         msg = (
-                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                #             f'application! It was made for a newer version!'
-                #         )
-                #         logger.warning(msg)
-                #     elif e.status == PluginStatus.OLDER:
-                #         msg = (
-                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                #             f'application! It was made for an older version!'
-                #         )
-                #         logger.warning(msg)
-                #     else:
-                #         msg = (
-                #             f'The plugin {plugin_instance.info.name} is NOT compatible with the current version of the '
-                #             f'application! It is not possible to determine what version of the application it was '
-                #             f'created for.'
-                #         )
-                #         logger.warning(msg)
 
             except AttributeError:
                 logger.warning(f'Proper plugin class "{plugin_class_name}" not found in module "{plugin_name}".')
@@ -106,37 +105,6 @@ def get_plugins(plugins_path: str) -> Dict[str, Dict[str, BasePlugin]]:
         all_plugins[subdir_path.name] = plugins
 
     return all_plugins
-
-
-def parser() -> argparse.ArgumentParser:
-    argument_parser = argparse.ArgumentParser(description='Device-Drama')
-
-    argument_parser.add_argument(
-        '-b', '--background', action='store_true', required=False, default=False,
-        dest='background', help='Add background layout',
-    )
-
-    argument_parser.add_argument(
-        '-c', '--color', action='store_true', required=False, default=False,
-        dest='color', help='Use colored output',
-    )
-
-    argument_parser.add_argument(
-        '-e', '--export', required=False, default=None, type=str,
-        dest='plugins_export_dir', help='Export plugins to path',
-    )
-
-    argument_parser.add_argument(
-        '-s', '--seed', type=int, default=None,
-        dest='seed', help='Set seed integer value for color parameter',
-    )
-
-    argument_parser.add_argument(
-        '-d', '--dir', type=str, default=str(Path(__file__).parent / 'plugins'),
-        dest='plugins_dir', help='Set transcription file names',
-    )
-
-    return argument_parser
 
 
 def generate_screen(plugin_modules) -> List[str]:
@@ -247,7 +215,6 @@ def main():
     """
     Dodać wyświetlanie listy pluginów w formie tabeli (na podstawie podanej ściezki do pluginów)
     Dodać informacje jak nie ma wymaganych atrybutów (minimum jakie oczekuje od pluginu aby posiadał)
-    
     """
 
     logger.info('---------- STARTED  ----------')
@@ -288,13 +255,13 @@ def main():
     screen = '\n'.join(generate_screen(plugin_modules))
 
     if not Config.arguments.color and not Config.arguments.background:
-        print(remove_formatting(screen))
+        print(' ' + remove_formatting(screen))
         print()
     elif not Config.arguments.color and Config.arguments.background:
         print(screen)
     elif Config.arguments.color and not Config.arguments.background:
         process = subprocess.Popen(lolcat_command, stdin=subprocess.PIPE)
-        process.communicate(input=remove_formatting(screen).encode())
+        process.communicate(input=b' ' + remove_formatting(screen).encode())
         print('\n')
     elif Config.arguments.color and Config.arguments.background:
         process = subprocess.Popen(lolcat_command, stdin=subprocess.PIPE)

@@ -69,8 +69,8 @@ class DiskInfo:
             mounts = mounts_file.readlines()
         for mount in mounts:
             if device in mount.split()[0]:
-                return 'YES'
-        return 'NO'
+                return 'YES', mount.split()[1]
+        return 'NO', ''
 
     @staticmethod
     def _get_disk_total_size(disk_name):
@@ -118,7 +118,7 @@ class DiskInfo:
         for device in data['blockdevices']:
             if device['name'] == self.disk:
                 self.lsblk_info = device
-                self.lsblk_info['mounted'] = self._is_mounted(device['name'])
+                self.lsblk_info['mounted'], self.lsblk_info['mount_path'] = self._is_mounted(device['name'])
 
                 for param, value in self._get_disk_usage(device['name']).items():
                     self.lsblk_info[param] = value
@@ -174,19 +174,22 @@ class DDPlugin(BasePlugin):
             '{free} '
             '{used_percentage} '
             '{free_percentage} '
-            '{mounted}'
+            '{mounted} '
+            '{mount_path}'
         )
         header = {
             'model': '{:26}'.format('Model'),
             'capacity': '{:>6}'.format('Size'),
             'tran': '{:>4}'.format('Tran'),
             'rotations': '{:^5}'.format('RPM'),
-            'size': '{:>9}'.format('Real Size'),
-            'used': '{:>9}'.format('Real Used'),
-            'free': '{:>9}'.format('Real Free'),
+            'size': '{:>10}'.format('Real Size'),
+            'used': '{:>10}'.format('Real Used'),
+            'free': '{:>10}'.format('Real Free'),
             'used_percentage': '{:>5}'.format('Used%'),
             'free_percentage': '{:>5}'.format('Free%'),
             'mounted': '{:>5}'.format('Mount'),
+            'mount_path': '{:50}'.format('Mount path'),
+
         }
 
         disks_info.append(
@@ -203,12 +206,13 @@ class DDPlugin(BasePlugin):
                 'capacity': '{:>6}'.format(disk.info['capacity']),
                 'tran': '{:>4}'.format(disk.info['tran'].upper()),
                 'rotations': '{:>5}'.format(disk.info['rotations']),
-                'size': '{:>9}'.format(disk.info['size']),
-                'used': '{:>9}'.format(disk.info['used']),
-                'free': '{:>9}'.format(disk.info['free']),
+                'size': '{:>10}'.format(disk.info['size']),
+                'used': '{:>10}'.format(disk.info['used']),
+                'free': '{:>10}'.format(disk.info['free']),
                 'used_percentage': '{:>5}'.format(disk.info['used_percentage']),
                 'free_percentage': '{:>5}'.format(disk.info['free_percentage']),
                 'mounted': '{:>5}'.format(disk.info['mounted']),
+                'mount_path': '{:50}'.format(disk.info['mount_path']),
             }
             disks_info.append(
                 {

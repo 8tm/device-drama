@@ -48,7 +48,7 @@ class DDPlugin(BasePlugin):
             minutes = int(uptime_seconds // 60)
             uptime_seconds %= 60
             seconds = int(uptime_seconds)
-            return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            return f"{days} days, {str(hours).zfill(2)}:{str(minutes).zfill(2)}:{str(seconds).zfill(2)}"
 
     def run(self) -> List[Dict[str, str]]:
         os_release = {}
