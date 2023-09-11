@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "device-drama"
-version = "23.8.17"
+version = "23.9.11"
 description = "Device-Drama - Linux Fetch Tool"
 authors = ["Tadeusz Miszczyk <42252259+8tm@users.noreply.github.com>"]
 homepage = "http://github.com/8tm/device-drama"
@@ -44,6 +44,8 @@ pytest-cov = "^2.10.1"
 pytest-mock = "^3.10.0"
 pytest-xdist = "^1.29.0"
 pytest-parallel = "^0.1.1"
+
+pre-commit = '^3.4.0'
 
 
 [tool.poetry.scripts]

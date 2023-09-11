@@ -1,0 +1,24 @@
+{
+    "MD003": {
+        "style": "atx"
+    },
+    "MD007": {
+        "indent": 4
+    },
+    "MD013": {
+        "line_length": 120
+    },
+    "MD033": {
+        "allowed_elements": [
+            "a",
+            "font"
+        ]
+    },
+    "MD040": {
+        "allowed_languages": []
+    },
+    "RULES": "https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md",
+    "default": true,
+    "no-hard-tabs": false,
+    "whitespace": false
+}
