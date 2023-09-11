@@ -41,4 +41,7 @@ class Logger:
         self._logger.error(message)
 
     def __del__(self):
-        self.info('Logger terminated.')
+        try:
+            self.info('Logger terminated.')
+        except NameError:
+            pass
