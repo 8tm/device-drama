@@ -5,6 +5,11 @@ import subprocess
 from datetime import datetime
 from typing import List
 
+from device_drama.classes.logger import Logger  # type: ignore
+
+
+logger = Logger(__name__)
+
 
 class CommandResult:
     def __init__(self, output: str, return_code: int, error_msg: str) -> None:
@@ -18,7 +23,28 @@ def run_command(command: str) -> CommandResult:
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
         return CommandResult(result.stdout.strip(), result.returncode, result.stderr.strip())
     except Exception as e:
-        return CommandResult('', -1, str(e))
+        logger.error(f'Application exception: {e}')
+        return CommandResult('', 1, str(e))
+
+
+def run_command_with_input(command: List[str], input_data: str) -> CommandResult:
+    try:
+        result = subprocess.run(command, input=input_data, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return CommandResult(result.stdout.strip(), result.returncode, result.stderr.strip())
+    except Exception as e:
+        logger.error(f'Application exception: {e}')
+        return CommandResult('', 1, str(e))
+
+
+def application_exists(name: str) -> bool:
+    try:
+        path = subprocess.check_output(['which', name])
+        logger.info(f'Application exists: {name}')
+    except subprocess.CalledProcessError:
+        path = ''
+        logger.error(f'Application NOT exists: {name}')
+
+    return os.path.exists(path.strip())
 
 
 def simplify_size_string(size_str: str) -> str:

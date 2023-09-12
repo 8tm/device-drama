@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin  # type: ignore
 from device_drama.classes.logger import Logger  # type: ignore
-from device_drama.misc import run_command  # type: ignore
+from device_drama.misc import application_exists, run_command  # type: ignore
 
 
 class DDPlugin(BasePlugin):
@@ -12,10 +12,19 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return GPU info'
         self.info.name = 'GPU-Info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     def run(self) -> List[Dict[str, str]]:
+        if not application_exists('glxinfo'):
+            return [
+                {
+                    'type': 'row',
+                    'title': ' GPU: ',
+                    'text': 'Unknown',
+                }
+            ]
+
         gpu_info = run_command('glxinfo').output
         gpu_name = [line.split(':')[1].strip() for line in gpu_info.split('\n') if 'OpenGL renderer string' in line][0]
 

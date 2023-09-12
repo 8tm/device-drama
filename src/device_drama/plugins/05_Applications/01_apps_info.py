@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin  # type: ignore
 from device_drama.classes.logger import Logger  # type: ignore
-from device_drama.misc import run_command  # type: ignore
+from device_drama.misc import application_exists, run_command  # type: ignore
 
 
 class DDPlugin(BasePlugin):
@@ -13,8 +13,8 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Apps info'
         self.info.name = 'Apps-info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     @staticmethod
     def get_shell_info() -> str:
@@ -27,8 +27,19 @@ class DDPlugin(BasePlugin):
 
     @staticmethod
     def get_window_manager() -> str:
-        wm = run_command('xprop -root _NET_WM_NAME').output.split('=')[1]
-        wm = wm.strip().replace('"', '') or 'Unknown WM'
+        wm = 'Unknown'
+
+        if not application_exists('xprop'):
+            return wm
+
+        process = run_command('xprop -root _NET_WM_NAME')
+
+        if process.return_code > 0:
+            return wm
+
+        if '=' in process.output:
+            wm = process.output.split('=')[1].strip().replace('"', '')
+
         return wm
 
     @staticmethod
@@ -40,6 +51,9 @@ class DDPlugin(BasePlugin):
         return run_command(f'ps -o ppid= -p {pid_id}').output.strip()
 
     def get_terminal_name(self) -> str:
+        if not application_exists('ps'):
+            return 'Unknown'
+
         device_drama_pid = self.get_process_pid('$$')            # device-drama pid
         bash_pid = self.get_process_pid(device_drama_pid)        # shell pid
         terminal_or_su_pid = self.get_process_pid(bash_pid)      # terminator pid or su pid if user
