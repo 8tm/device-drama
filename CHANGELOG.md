@@ -2,6 +2,20 @@
 
 - --
 
+## 23.9.12
+
+### Changed
+
+* replaced subprocess from 01_disks_info plugin with run_command
+* replaced subprocess from 01_monitors_info plugin with run_command
+* (I hope) Fixed issue no 3 (https://github.com/8tm/device-drama/issues/3)
+
+### Added
+
+* added new functions run_command_with_input and application_exists in misc
+
+- --
+
 ## 23.9.11
 
 ### Changed

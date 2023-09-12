@@ -1,10 +1,11 @@
 import re
-import subprocess
 from datetime import date, timedelta
 from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin  # type: ignore
 from device_drama.classes.logger import Logger  # type: ignore
+from device_drama.misc import application_exists, run_command, run_command_with_input  # type: ignore
+
 
 BRANDS_DICT = {
     'LEN': 'Lenovo',
@@ -70,8 +71,8 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Monitors info'
         self.info.name = 'Monitors-Info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     @staticmethod
     def extract_connection_info(connection_output: str) -> List[Dict[str, str]]:
@@ -103,16 +104,15 @@ class DDPlugin(BasePlugin):
 
     @staticmethod
     def decode_edid(edid_data: str) -> str:
-        try:
-            result = subprocess.check_output(
-                ['edid-decode'],
-                input=edid_data,
-                text=True,
-                stderr=subprocess.STDOUT
-            )
-            return result
-        except subprocess.CalledProcessError as e:
-            return e.output
+        if not application_exists('edid-decode'):
+            return ''
+
+        result = run_command_with_input(['edid-decode'], edid_data)
+
+        if result.return_code > 0:
+            return result.error_msg
+
+        return result.output
 
     def extract_monitors_info(self, edid_output: str) -> List[Dict[str, str]]:
         monitors = []
@@ -140,11 +140,10 @@ class DDPlugin(BasePlugin):
         return monitors
 
     def get_full_info(self) -> List[Monitor]:
-        xrandr_output = subprocess.check_output(
-            'xrandr -q --verbose',
-            shell=True,
-            text=True
-        )
+        if not application_exists('xrandr'):
+            return []
+
+        xrandr_output = run_command('xrandr -q --verbose').output
         connection_output = '\n'.join([line for line in xrandr_output.splitlines() if ' connected' in line])
 
         lines = xrandr_output.splitlines()
@@ -197,6 +196,20 @@ class DDPlugin(BasePlugin):
 
     def run(self) -> List[Dict[str, str]]:
         monitors = self.get_full_info()
+        if len(monitors) == 0:
+            return [
+                {
+                    'type': 'row',
+                    'title': ' Orientation: ',
+                    'text': 'Unknown',
+                },
+                {
+                    'type': 'row',
+                    'title': '  Resolution: ',
+                    'text': 'Unknown',
+                }
+            ]
+
         monitors_orientation = ''.join([monitor.visual_representation() for monitor in monitors])
         monitor_resolutions = ' + '.join([monitor.resolution for monitor in monitors])
 

@@ -12,6 +12,7 @@ from device_drama.classes.logger import Logger  # type: ignore
 from device_drama.classes.plugin_validator import PluginStatus, PluginValidator  # type: ignore
 from device_drama.misc import copy_files, get_formatted_text, remove_formatting, run_command  # type: ignore
 
+
 logger = Logger(__name__)
 
 

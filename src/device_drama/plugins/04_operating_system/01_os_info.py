@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from device_drama.classes.base_plugin import BasePlugin  # type: ignore
 from device_drama.classes.logger import Logger  # type: ignore
-from device_drama.misc import run_command  # type: ignore
+from device_drama.misc import application_exists, run_command  # type: ignore
 
 
 class DDPlugin(BasePlugin):
@@ -13,23 +13,30 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return OS Info'
         self.info.name = 'OS-Info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     @staticmethod
     def get_packages_count() -> str:
-        dpkg_output = run_command('dpkg --get-selections').output
-        dpkg_count = len([line for line in dpkg_output.split('\n') if 'deinstall' not in line]) - 1
+        dpkg_count = 0
+        if application_exists('dpkg'):
+            dpkg_output = run_command('dpkg --get-selections').output
+            dpkg_count = len([line for line in dpkg_output.split('\n') if 'deinstall' not in line]) - 1
 
-        snap_output = run_command('snap list').output
-        snap_count = len(snap_output.split('\n')) - 1
+        snap_count = 0
+        if application_exists('snap'):
+            snap_output = run_command('snap list').output
+            snap_count = len(snap_output.split('\n')) - 1
 
         return f'{dpkg_count} (dpkg), {snap_count} (snap)'
 
     @staticmethod
     def get_gtk_info(component: str) -> str:
+        if not application_exists('gsettings'):
+            return 'Unknown'
+
         command = f'gsettings get org.gnome.desktop.interface {component}-theme'
-        return run_command(command).output or 'Unknown'
+        return run_command(command).output.replace("'", '')
 
     @staticmethod
     def get_uptime() -> str:

@@ -12,8 +12,8 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return RAM info'
         self.info.name = 'RAM-Info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     def run(self) -> List[Dict[str, str]]:
         with open('/proc/meminfo', 'r') as f:

@@ -1,12 +1,12 @@
 import json
 import os
 import re
-import subprocess
 from typing import Dict, List, Tuple
 
 from device_drama.classes.base_plugin import BasePlugin  # type: ignore
 from device_drama.classes.logger import Logger  # type: ignore
 from device_drama.misc import format_size, simplify_size_string, utext  # type: ignore
+from device_drama.misc import application_exists, run_command  # type: ignore
 
 
 class SmartInfo:
@@ -15,11 +15,10 @@ class SmartInfo:
         self.data = self._fetch_smart_info()
 
     def _fetch_smart_info(self) -> Dict[str, str]:
-        cmd = f'sudo smartctl --info /dev/{self.disk}'
-        try:
-            output = subprocess.check_output(cmd, shell=True).decode('utf-8')
-        except subprocess.CalledProcessError:
+        if not application_exists('smartctl'):
             return {}
+
+        output = run_command(f'smartctl --info /dev/{self.disk}').output
 
         info = {}
         known_smart_params = {
@@ -111,8 +110,25 @@ class DiskInfo:
         }
 
     def _fetch_disk_info(self) -> None:
-        cmd = 'lsblk -o MODEL,NAME,TRAN,ROTA -J'
-        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        if not application_exists('lsblk'):
+            self.info = {
+                'model': '???',
+                'name': '???',
+                'tran': '???',
+                'rota': False,
+                'capacity': '???',
+                'rotations': '???',
+                'mounted': '???',
+                'size': '???',
+                'used': '???',
+                'free': '???',
+                'used_percentage': '???',
+                'free_percentage': '???',
+                'mount_path': '???',
+            }
+            return
+
+        output = run_command('lsblk -o MODEL,NAME,TRAN,ROTA -J').output
         data = json.loads(output)
 
         for device in data['blockdevices']:
@@ -158,8 +174,8 @@ class DDPlugin(BasePlugin):
         self.info.author = 'Tadeusz Miszczyk'
         self.info.description = 'Return Disks info'
         self.info.name = 'Disks-Info'
-        self.info.plugin_version = '23.9.4'
-        self.info.compatible_version = '23.9.4'
+        self.info.plugin_version = '23.9.12'
+        self.info.compatible_version = '23.9.12'
 
     def run(self) -> List[Dict[str, str]]:
         disks_info = []
