@@ -2,6 +2,23 @@
 
 - --
 
+## 23.9.15
+
+### Added
+
+* added flatpak packages counter to packages in os info
+
+### Changed
+
+* Changed to dynamic way displaying information about packages (i.e. show snap packages if snap is installed, dpkg, flatpak)
+* Small change in README.md
+
+### Removed
+
+* dead code from apps info
+
+- --
+
 ## 23.9.12
 
 ### Changed

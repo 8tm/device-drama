@@ -18,17 +18,34 @@ class DDPlugin(BasePlugin):
 
     @staticmethod
     def get_packages_count() -> str:
-        dpkg_count = 0
-        if application_exists('dpkg'):
-            dpkg_output = run_command('dpkg --get-selections').output
-            dpkg_count = len([line for line in dpkg_output.split('\n') if 'deinstall' not in line]) - 1
+        package_managers = (
+            {
+                'name': 'dpkg',
+                'command': 'dpkg --get-selections',
+                'correction': 1,
+            },
+            {
+                'name': 'snap',
+                'command': 'snap list',
+                'correction': 1,
+            },
+            {
+                'name': 'flatpak',
+                'command': 'flatpak list --app',
+                'correction': 0,
+            },
+        )
+        packages = []
+        for manager in package_managers:
+            if application_exists(manager['name']):
+                output = run_command(manager['command']).output
+                packages_count = (
+                        len([line for line in output.split('\n') if 'deinstall' not in line]) - manager['correction']
+                )
+                if packages_count > 0:
+                    packages.append(f'{packages_count} ({manager["name"]})')
 
-        snap_count = 0
-        if application_exists('snap'):
-            snap_output = run_command('snap list').output
-            snap_count = len(snap_output.split('\n')) - 1
-
-        return f'{dpkg_count} (dpkg), {snap_count} (snap)'
+        return ", ".join(packages)
 
     @staticmethod
     def get_gtk_info(component: str) -> str:
