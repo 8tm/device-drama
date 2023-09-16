@@ -68,12 +68,6 @@ class DDPlugin(BasePlugin):
         return self.get_process_name(terminal_pid)
 
     def run(self) -> List[Dict[str, str]]:
-        os_release = {}
-        with open('/etc/os-release', 'r') as file:
-            for line in file:
-                key, value = line.strip().split('=')
-                os_release[key] = value.strip('"')
-
         return [
             {
                 'type': 'row',
@@ -90,5 +84,4 @@ class DDPlugin(BasePlugin):
                 'title': '    Terminal: ',
                 'text': self.get_terminal_name(),
             }
-
         ]
