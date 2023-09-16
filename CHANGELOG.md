@@ -1,6 +1,11 @@
 # Change Log
 
 - --
+## 23.9.16
+### Changed
+* Divided Apps module to smaller modules
+
+- --
 
 ## 23.9.15
 

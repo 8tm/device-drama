@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "device-drama"
-version = "23.9.15"
+version = "23.9.16"
 description = "Device-Drama - Linux Fetch Tool"
 authors = ["Tadeusz Miszczyk <42252259+8tm@users.noreply.github.com>"]
 homepage = "http://github.com/8tm/device-drama"
